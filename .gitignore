@@ -13,7 +13,8 @@
 /venv
 
 config.yaml
-.idea/
+
+.idea
 .DS_Store
-build/
-.tox/
+build
+.tox
