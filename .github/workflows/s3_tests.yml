@@ -1,4 +1,4 @@
-name: CEPH S3 Tests
+name: Ceph S3 Tests
 
 on:
   pull_request:
@@ -6,11 +6,15 @@ on:
       - master
 
 jobs:
-  s3_test:
-    uses: rabataio/s3-ceph-tests/.github/workflows/reusable_s3_tests.yml@feature/TRCS-107
-    with:
-      MAIN_ACCESS_KEY: ${{ vars.MAIN_ACCESS_KEY }}
-      ALT_ACCESS_KEY: ${{ vars.ALT_ACCESS_KEY }}
-    secrets:
-      MAIN_SECRET_KEY: ${{ secrets.MAIN_SECRET_KEY }}
-      ALT_SECRET_KEY: ${{ secrets.ALT_SECRET_KEY }}
+  s3tests:
+    name: S3 Tests
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/run-s3tests
+        with:
+          MAIN_ACCESS_KEY: ${{ vars.MAIN_ACCESS_KEY }}
+          MAIN_SECRET_KEY: ${{ secrets.MAIN_SECRET_KEY }}
+          ALT_ACCESS_KEY: ${{ vars.ALT_ACCESS_KEY }}
+          ALT_SECRET_KEY: ${{ secrets.ALT_SECRET_KEY }}

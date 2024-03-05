@@ -1,10 +1,10 @@
 # boto2
 #s3tests/functional/test_s3.py::test_bucket_create_naming_bad_punctuation
-#s3tests/functional/test_s3.py::test_versioning_obj_read_not_exist_null # CreateBucket - MalformedXML - The XML you provided was not well formed or did not validate against our published schema
+#s3tests/functional/test_s3.py::test_versioning_obj_read_not_exist_null # CreateBucket - MalformedXML
 #s3tests/functional/test_s3.py::test_append_object # Skipped - fails_on_aws
 #s3tests/functional/test_s3.py::test_append_normal_object # Skipped - fails_on_aws
 #s3tests/functional/test_s3.py::test_append_object_position_wrong # Skipped - fails_on_aws
-#s3tests/functional/test_s3.py::test_logging_toggle # CreateBucket - MalformedXML - The XML you provided was not well formed or did not validate against our published schema
+#s3tests/functional/test_s3.py::test_logging_toggle # CreateBucket - MalformedXML
 #s3tests/functional/test_s3.py::test_object_storage_class # Skipped - fails_on_aws
 #s3tests/functional/test_s3.py::test_object_storage_class_multipart # Skipped - fails_on_aws
 #s3tests/functional/test_s3.py::test_object_modify_storage_class # Skipped - fails_on_aws
@@ -13,11 +13,11 @@
 #s3tests/functional/test_s3.py::test_object_storage_class_copy_multipart # Skipped - fails_on_aws
 #s3tests/functional/test_s3.py::test_atomic_dual_conditional_write_1mb # Skipped - fails_on_aws
 #s3tests/functional/test_s3.py::test_atomic_write_bucket_gone # Skipped - fails_on_aws
-#s3tests/functional/test_s3.py::test_encryption_sse_c_multipart_invalid_chunks_1 # CreateBucket - MalformedXML - The XML you provided was not well formed or did not validate against our published schema
-#s3tests/functional/test_s3.py::test_encryption_sse_c_multipart_invalid_chunks_2 # CreateBucket - MalformedXML - The XML you provided was not well formed or did not validate against our published schema
-#s3tests/functional/test_s3.py::test_bucket_policy_different_tenant # CreateBucket - MalformedXML - The XML you provided was not well formed or did not validate against our published schema
-#s3tests/functional/test_s3.py::test_bucket_policy_set_condition_operator_end_with_IfExists # CreateBucket - MalformedXML - The XML you provided was not well formed or did not validate against our published schema
-#s3tests/functional/test_s3.py::test_bucket_policy_put_obj_request_obj_tag # CreateBucket - MalformedXML - The XML you provided was not well formed or did not validate against our published schema
+#s3tests/functional/test_s3.py::test_encryption_sse_c_multipart_invalid_chunks_1 # CreateBucket - MalformedXML
+#s3tests/functional/test_s3.py::test_encryption_sse_c_multipart_invalid_chunks_2 # CreateBucket - MalformedXML
+#s3tests/functional/test_s3.py::test_bucket_policy_different_tenant # CreateBucket - MalformedXML
+#s3tests/functional/test_s3.py::test_bucket_policy_set_condition_operator_end_with_IfExists # CreateBucket - MalformedXML
+#s3tests/functional/test_s3.py::test_bucket_policy_put_obj_request_obj_tag # CreateBucket - MalformedXML
 
 # boto3
 s3tests_boto3/functional/test_s3.py::test_bucket_list_distinct
@@ -98,27 +98,27 @@ s3tests_boto3/functional/test_s3.py::test_bucket_list_marker_not_in_list
 s3tests_boto3/functional/test_s3.py::test_bucket_listv2_startafter_not_in_list
 s3tests_boto3/functional/test_s3.py::test_bucket_list_marker_after_list
 s3tests_boto3/functional/test_s3.py::test_bucket_listv2_startafter_after_list
-#s3tests_boto3/functional/test_s3.py::test_bucket_list_return_data # Failed - get_object_acl - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_bucket_list_return_data_versioning # Failed - put_bucket_versioning - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_bucket_list_objects_anonymous # Failed - put_bucket_acl- unimplemented
-#s3tests_boto3/functional/test_s3.py::test_bucket_listv2_objects_anonymous # Failed - put_bucket_acl - unimplemented
+#s3tests_boto3/functional/test_s3.py::test_bucket_list_return_data # Failed - get_object_acl - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_bucket_list_return_data_versioning # Failed - put_bucket_versioning - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_bucket_list_objects_anonymous # Failed - put_bucket_acl- NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_bucket_listv2_objects_anonymous # Failed - put_bucket_acl - NotImplemented
 s3tests_boto3/functional/test_s3.py::test_bucket_list_objects_anonymous_fail
 s3tests_boto3/functional/test_s3.py::test_bucket_listv2_objects_anonymous_fail
 s3tests_boto3/functional/test_s3.py::test_bucket_notexist
 s3tests_boto3/functional/test_s3.py::test_bucketv2_notexist
 s3tests_boto3/functional/test_s3.py::test_bucket_delete_notexist
 s3tests_boto3/functional/test_s3.py::test_bucket_delete_nonempty
-#s3tests_boto3/functional/test_s3.py::test_bucket_concurrent_set_canned_acl # Failed - put_bucket_acl - unimplemented
+#s3tests_boto3/functional/test_s3.py::test_bucket_concurrent_set_canned_acl # Failed - put_bucket_acl - NotImplemented
 s3tests_boto3/functional/test_s3.py::test_object_write_to_nonexist_bucket
 #s3tests_boto3/functional/test_s3.py::test_object_write_with_chunked_transfer_encoding # Failed - put_object - signature does not match
 s3tests_boto3/functional/test_s3.py::test_bucket_create_delete
 s3tests_boto3/functional/test_s3.py::test_object_read_not_exist
 s3tests_boto3/functional/test_s3.py::test_object_requestid_matches_header_on_error
-#s3tests_boto3/functional/test_s3.py::test_versioning_concurrent_multi_object_delete # Failed - put_bucket_versioning - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_multi_object_delete # Failed - delete_objects - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_multi_objectv2_delete # Failed - delete_objects - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_multi_object_delete_key_limit # Failed - delete_objects - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_multi_objectv2_delete_key_limit # Failed - delete_objects - unimplemented
+#s3tests_boto3/functional/test_s3.py::test_versioning_concurrent_multi_object_delete # Failed - put_bucket_versioning - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_multi_object_delete # Failed - delete_objects - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_multi_objectv2_delete # Failed - delete_objects - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_multi_object_delete_key_limit # Failed - delete_objects - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_multi_objectv2_delete_key_limit # Failed - delete_objects - NotImplemented
 s3tests_boto3/functional/test_s3.py::test_object_head_zero_bytes
 s3tests_boto3/functional/test_s3.py::test_object_write_check_etag
 s3tests_boto3/functional/test_s3.py::test_object_write_cache_control
@@ -130,39 +130,39 @@ s3tests_boto3/functional/test_s3.py::test_object_write_read_update_read_delete
 #s3tests_boto3/functional/test_s3.py::test_object_set_get_unicode_metadata # Failed - get_object - missing metadata
 s3tests_boto3/functional/test_s3.py::test_object_metadata_replaced_on_put
 s3tests_boto3/functional/test_s3.py::test_object_write_file
-#s3tests_boto3/functional/test_s3.py::test_post_object_anonymous_request # Failed - _get_post_url - expected 204 but got 405
-#s3tests_boto3/functional/test_s3.py::test_post_object_authenticated_request # Failed - _get_post_url - expected 204 but got 405
-#s3tests_boto3/functional/test_s3.py::test_post_object_authenticated_no_content_type # Failed - _get_post_url - expected 204 but got 405
-#s3tests_boto3/functional/test_s3.py::test_post_object_authenticated_request_bad_access_key # Failed - _get_post_url - expected 403 but got 405
-#s3tests_boto3/functional/test_s3.py::test_post_object_set_success_code # Failed - _get_post_url - expected 201 but got 405
-#s3tests_boto3/functional/test_s3.py::test_post_object_set_invalid_success_code # Failed - _get_post_url - expected 204 but got 405
-#s3tests_boto3/functional/test_s3.py::test_post_object_upload_larger_than_chunk # Failed - _get_post_url - expected 204 but got 405
-#s3tests_boto3/functional/test_s3.py::test_post_object_set_key_from_filename # Failed - _get_post_url - expected 204 but got 405
-#s3tests_boto3/functional/test_s3.py::test_post_object_ignored_header # Failed - _get_post_url - expected 204 but got 405
-#s3tests_boto3/functional/test_s3.py::test_post_object_case_insensitive_condition_fields # Failed - _get_post_url - expected 204 but got 405
-#s3tests_boto3/functional/test_s3.py::test_post_object_escaped_field_values # Failed - _get_post_url - expected 204 but got 405
-#s3tests_boto3/functional/test_s3.py::test_post_object_success_redirect_action # Failed - _get_post_url - expected 200 but got 405
-#s3tests_boto3/functional/test_s3.py::test_post_object_invalid_signature # Failed - _get_post_url - expected 403 but got 405
-#s3tests_boto3/functional/test_s3.py::test_post_object_invalid_access_key # Failed - _get_post_url - expected 403 but got 405
-#s3tests_boto3/functional/test_s3.py::test_post_object_invalid_date_format # Failed - _get_post_url - expected 400 but got 405
-#s3tests_boto3/functional/test_s3.py::test_post_object_no_key_specified # Failed - _get_post_url - expected 400 but got 405
-#s3tests_boto3/functional/test_s3.py::test_post_object_missing_signature # Failed - _get_post_url - expected 400 but got 405
-#s3tests_boto3/functional/test_s3.py::test_post_object_missing_policy_condition # Failed - _get_post_url - expected 403 but got 405
-#s3tests_boto3/functional/test_s3.py::test_post_object_user_specified_header # Failed - _get_post_url - expected 204 but got 405
-#s3tests_boto3/functional/test_s3.py::test_post_object_request_missing_policy_specified_field # Failed - _get_post_url - expected 403 but got 405
-#s3tests_boto3/functional/test_s3.py::test_post_object_condition_is_case_sensitive # Failed - _get_post_url - expected 400 but got 405
-#s3tests_boto3/functional/test_s3.py::test_post_object_expires_is_case_sensitive # Failed - _get_post_url - expected 400 but got 405
-#s3tests_boto3/functional/test_s3.py::test_post_object_expired_policy # Failed - _get_post_url - expected 403 but got 405
-#s3tests_boto3/functional/test_s3.py::test_post_object_wrong_bucket # Failed - _get_post_url - expected 403 but got 405
-#s3tests_boto3/functional/test_s3.py::test_post_object_invalid_request_field_value # Failed - _get_post_url - expected 403 but got 405
-#s3tests_boto3/functional/test_s3.py::test_post_object_missing_expires_condition # Failed - _get_post_url - expected 400 but got 405
-#s3tests_boto3/functional/test_s3.py::test_post_object_missing_conditions_list # Failed - _get_post_url - expected 400 but got 405
-#s3tests_boto3/functional/test_s3.py::test_post_object_upload_size_limit_exceeded # Failed - _get_post_url - expected 400 but got 405
-#s3tests_boto3/functional/test_s3.py::test_post_object_missing_content_length_argument # Failed - _get_post_url - expected 400 but got 405
-#s3tests_boto3/functional/test_s3.py::test_post_object_invalid_content_length_argument # Failed - _get_post_url - expected 400 but got 405
-#s3tests_boto3/functional/test_s3.py::test_post_object_upload_size_below_minimum # Failed - _get_post_url - expected 400 but got 405
-#s3tests_boto3/functional/test_s3.py::test_post_object_upload_size_rgw_chunk_size_bug # Failed - _get_post_url - expected 204 but got 405
-#s3tests_boto3/functional/test_s3.py::test_post_object_empty_conditions # Failed - _get_post_url - expected 400 but got 405
+#s3tests_boto3/functional/test_s3.py::test_post_object_anonymous_request # Failed - _get_post_url - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_post_object_authenticated_request # Failed - _get_post_url - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_post_object_authenticated_no_content_type # Failed - _get_post_url - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_post_object_authenticated_request_bad_access_key # Failed - _get_post_url - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_post_object_set_success_code # Failed - _get_post_url - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_post_object_set_invalid_success_code # Failed - _get_post_url - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_post_object_upload_larger_than_chunk # Failed - _get_post_url - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_post_object_set_key_from_filename # Failed - _get_post_url - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_post_object_ignored_header # Failed - _get_post_url - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_post_object_case_insensitive_condition_fields # Failed - _get_post_url - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_post_object_escaped_field_values # Failed - _get_post_url - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_post_object_success_redirect_action # Failed - _get_post_url - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_post_object_invalid_signature # Failed - _get_post_url - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_post_object_invalid_access_key # Failed - _get_post_url - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_post_object_invalid_date_format # Failed - _get_post_url - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_post_object_no_key_specified # Failed - _get_post_url - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_post_object_missing_signature # Failed - _get_post_url - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_post_object_missing_policy_condition # Failed - _get_post_url - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_post_object_user_specified_header # Failed - _get_post_url - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_post_object_request_missing_policy_specified_field # Failed - _get_post_url - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_post_object_condition_is_case_sensitive # Failed - _get_post_url - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_post_object_expires_is_case_sensitive # Failed - _get_post_url - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_post_object_expired_policy # Failed - _get_post_url - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_post_object_wrong_bucket # Failed - _get_post_url - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_post_object_invalid_request_field_value # Failed - _get_post_url - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_post_object_missing_expires_condition # Failed - _get_post_url - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_post_object_missing_conditions_list # Failed - _get_post_url - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_post_object_upload_size_limit_exceeded # Failed - _get_post_url - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_post_object_missing_content_length_argument # Failed - _get_post_url - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_post_object_invalid_content_length_argument # Failed - _get_post_url - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_post_object_upload_size_below_minimum # Failed - _get_post_url - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_post_object_upload_size_rgw_chunk_size_bug # Failed - _get_post_url - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_post_object_empty_conditions # Failed - _get_post_url - NotImplemented
 s3tests_boto3/functional/test_s3.py::test_get_object_ifmatch_good
 s3tests_boto3/functional/test_s3.py::test_get_object_ifmatch_failed
 s3tests_boto3/functional/test_s3.py::test_get_object_ifnonematch_good
@@ -179,27 +179,27 @@ s3tests_boto3/functional/test_s3.py::test_get_object_ifunmodifiedsince_failed
 #s3tests_boto3/functional/test_s3.py::test_put_object_ifnonmatch_failed # Skipped - fails_on_aws
 #s3tests_boto3/functional/test_s3.py::test_put_object_ifnonmatch_nonexisted_good # Skipped - fails_on_aws
 #s3tests_boto3/functional/test_s3.py::test_put_object_ifnonmatch_overwrite_existed_failed # Skipped - fails_on_aws
-#s3tests_boto3/functional/test_s3.py::test_object_raw_get # Failed - put_object - unimplemented header
-#s3tests_boto3/functional/test_s3.py::test_object_raw_get_bucket_gone # Failed - put_object - unimplemented header
-#s3tests_boto3/functional/test_s3.py::test_object_delete_key_bucket_gone # Failed - put_object - unimplemented header
-#s3tests_boto3/functional/test_s3.py::test_object_raw_get_object_gone # Failed - put_object - unimplemented header
-#s3tests_boto3/functional/test_s3.py::test_bucket_head # Failed - head_bucket - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_bucket_head_notexist # Failed - head_bucket - unimplemented
+#s3tests_boto3/functional/test_s3.py::test_object_raw_get # Failed - put_object - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_object_raw_get_bucket_gone # Failed - put_object - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_object_delete_key_bucket_gone # Failed - put_object - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_object_raw_get_object_gone # Failed - put_object - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_bucket_head # Failed - head_bucket - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_bucket_head_notexist # Failed - head_bucket - NotImplemented
 #s3tests_boto3/functional/test_s3.py::test_bucket_head_extended # Skipped - fails_on_aws
-#s3tests_boto3/functional/test_s3.py::test_object_raw_get_bucket_acl # Failed - put_object - unimplemented header
-#s3tests_boto3/functional/test_s3.py::test_object_raw_get_object_acl # Failed - put_object - unimplemented header
-#s3tests_boto3/functional/test_s3.py::test_object_put_acl_mtime # Failed - put_bucket_versioning - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_object_raw_authenticated # Failed - put_object - unimplemented header
-#s3tests_boto3/functional/test_s3.py::test_object_raw_response_headers # Failed - put_object - unimplemented header
-#s3tests_boto3/functional/test_s3.py::test_object_raw_authenticated_bucket_acl # Failed - put_object - unimplemented header
-#s3tests_boto3/functional/test_s3.py::test_object_raw_authenticated_object_acl # Failed - put_object - unimplemented header
-#s3tests_boto3/functional/test_s3.py::test_object_raw_authenticated_bucket_gone # Failed - put_object - unimplemented header
-#s3tests_boto3/functional/test_s3.py::test_object_raw_authenticated_object_gone # Failed - put_object - unimplemented header
-#s3tests_boto3/functional/test_s3.py::test_object_raw_get_x_amz_expires_not_expired # Failed - put_object - unimplemented header
-#s3tests_boto3/functional/test_s3.py::test_object_raw_get_x_amz_expires_not_expired_tenant # Failed - put_object - unimplemented header
-#s3tests_boto3/functional/test_s3.py::test_object_raw_get_x_amz_expires_out_range_zero # Failed - put_object - unimplemented header
-#s3tests_boto3/functional/test_s3.py::test_object_raw_get_x_amz_expires_out_max_range # Failed - put_object - unimplemented header
-#s3tests_boto3/functional/test_s3.py::test_object_raw_get_x_amz_expires_out_positive_range # Failed - put_object - unimplemented header
+#s3tests_boto3/functional/test_s3.py::test_object_raw_get_bucket_acl # Failed - put_object - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_object_raw_get_object_acl # Failed - put_object - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_object_put_acl_mtime # Failed - put_bucket_versioning - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_object_raw_authenticated # Failed - put_object - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_object_raw_response_headers # Failed - put_object - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_object_raw_authenticated_bucket_acl # Failed - put_object - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_object_raw_authenticated_object_acl # Failed - put_object - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_object_raw_authenticated_bucket_gone # Failed - put_object - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_object_raw_authenticated_object_gone # Failed - put_object - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_object_raw_get_x_amz_expires_not_expired # Failed - put_object - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_object_raw_get_x_amz_expires_not_expired_tenant # Failed - put_object - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_object_raw_get_x_amz_expires_out_range_zero # Failed - put_object - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_object_raw_get_x_amz_expires_out_max_range # Failed - put_object - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_object_raw_get_x_amz_expires_out_positive_range # Failed - put_object - NotImplemented
 s3tests_boto3/functional/test_s3.py::test_object_anon_put
 #s3tests_boto3/functional/test_s3.py::test_object_anon_put_write_access # Failed - put_object - set bucket acl='public-read-write' - access denied
 s3tests_boto3/functional/test_s3.py::test_object_put_authenticated
@@ -224,21 +224,21 @@ s3tests_boto3/functional/test_s3.py::test_bucket_create_naming_good_long_63
 #s3tests_boto3/functional/test_s3.py::test_bucket_create_exists_nonowner # Failed - create_bucket - expected 'BucketAlreadyExists' but got 'BucketAlreadyOwnedByYou'
 #s3tests_boto3/functional/test_s3.py::test_bucket_recreate_overwrite_acl # Failed - create_bucket - expected 'BucketAlreadyExists' but got 'BucketAlreadyOwnedByYou'
 #s3tests_boto3/functional/test_s3.py::test_bucket_recreate_new_acl # Failed - create_bucket - expected 'BucketAlreadyExists' but got 'BucketAlreadyOwnedByYou'
-#s3tests_boto3/functional/test_s3.py::test_bucket_acl_default # Failed - get_bucket_acl - unimplemented
+#s3tests_boto3/functional/test_s3.py::test_bucket_acl_default # Failed - get_bucket_acl - NotImplemented
 #s3tests_boto3/functional/test_s3.py::test_bucket_acl_canned_during_create # Skipped - fails_on_aws
-#s3tests_boto3/functional/test_s3.py::test_bucket_acl_canned # Failed - get_bucket_acl - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_bucket_acl_canned_publicreadwrite # Failed - get_bucket_acl - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_bucket_acl_canned_authenticatedread # Failed - get_bucket_acl - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_object_acl_default # Failed - get_bucket_acl - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_object_acl_canned_during_create # Failed - put_object - unimplemented header
-#s3tests_boto3/functional/test_s3.py::test_object_acl_canned # Failed - put_object - unimplemented header
-#s3tests_boto3/functional/test_s3.py::test_object_acl_canned_publicreadwrite # Failed - put_object - unimplemented header
-#s3tests_boto3/functional/test_s3.py::test_object_acl_canned_authenticatedread # Failed - put_object - unimplemented header
-#s3tests_boto3/functional/test_s3.py::test_object_acl_canned_bucketownerread # Failed - get_bucket_acl - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_object_acl_canned_bucketownerfullcontrol # Failed - get_bucket_acl - unimplemented
+#s3tests_boto3/functional/test_s3.py::test_bucket_acl_canned # Failed - get_bucket_acl - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_bucket_acl_canned_publicreadwrite # Failed - get_bucket_acl - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_bucket_acl_canned_authenticatedread # Failed - get_bucket_acl - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_object_acl_default # Failed - get_bucket_acl - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_object_acl_canned_during_create # Failed - put_object - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_object_acl_canned # Failed - put_object - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_object_acl_canned_publicreadwrite # Failed - put_object - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_object_acl_canned_authenticatedread # Failed - put_object - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_object_acl_canned_bucketownerread # Failed - get_bucket_acl - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_object_acl_canned_bucketownerfullcontrol # Failed - get_bucket_acl - NotImplemented
 #s3tests_boto3/functional/test_s3.py::test_object_acl_full_control_verify_owner # Skipped - fails_on_aws
-#s3tests_boto3/functional/test_s3.py::test_object_acl_full_control_verify_attributes # Failed - get_object_acl - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_bucket_acl_canned_private_to_private # Failed - put_bucket_acl - unimplemented
+#s3tests_boto3/functional/test_s3.py::test_object_acl_full_control_verify_attributes # Failed - get_object_acl - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_bucket_acl_canned_private_to_private # Failed - put_bucket_acl - NotImplemented
 #s3tests_boto3/functional/test_s3.py::test_object_acl # Skipped - fails_on_aws
 #s3tests_boto3/functional/test_s3.py::test_object_acl_write # Skipped - fails_on_aws
 #s3tests_boto3/functional/test_s3.py::test_object_acl_writeacp # Skipped - fails_on_aws
@@ -249,26 +249,26 @@ s3tests_boto3/functional/test_s3.py::test_bucket_create_naming_good_long_63
 #s3tests_boto3/functional/test_s3.py::test_bucket_acl_grant_userid_readacp # Skipped - fails_on_aws
 #s3tests_boto3/functional/test_s3.py::test_bucket_acl_grant_userid_write # Skipped - fails_on_aws
 #s3tests_boto3/functional/test_s3.py::test_bucket_acl_grant_userid_writeacp # Skipped - fails_on_aws
-#s3tests_boto3/functional/test_s3.py::test_bucket_acl_grant_nonexist_user # Failed - get_bucket_acl - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_bucket_acl_no_grants # Failed - get_bucket_acl - unimplemented
+#s3tests_boto3/functional/test_s3.py::test_bucket_acl_grant_nonexist_user # Failed - get_bucket_acl - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_bucket_acl_no_grants # Failed - get_bucket_acl - NotImplemented
 #s3tests_boto3/functional/test_s3.py::test_object_header_acl_grants # Skipped - fails_on_aws
 #s3tests_boto3/functional/test_s3.py::test_bucket_header_acl_grants # Skipped - fails_on_aws
 #s3tests_boto3/functional/test_s3.py::test_bucket_acl_grant_email # Skipped - fails_on_aws
-#s3tests_boto3/functional/test_s3.py::test_bucket_acl_grant_email_not_exist # Failed - get_bucket_acl - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_bucket_acl_revoke_all # Failed - get_bucket_acl - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_logging_toggle # Failed - put_bucket_logging - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_access_bucket_private_object_private # Failed - put_bucket_acl - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_access_bucket_private_objectv2_private # Failed - put_bucket_acl - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_access_bucket_private_object_publicread # Failed - put_bucket_acl - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_access_bucket_private_objectv2_publicread # Failed - put_bucket_acl - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_access_bucket_private_object_publicreadwrite # Failed - put_bucket_acl - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_access_bucket_private_objectv2_publicreadwrite # Failed - put_bucket_acl - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_access_bucket_publicread_object_private # Failed - put_bucket_acl - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_access_bucket_publicread_object_publicread # Failed - put_bucket_acl - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_access_bucket_publicread_object_publicreadwrite # Failed - put_bucket_acl - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_access_bucket_publicreadwrite_object_private # Failed - put_bucket_acl - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_access_bucket_publicreadwrite_object_publicread # Failed - put_bucket_acl - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_access_bucket_publicreadwrite_object_publicreadwrite # Failed - put_bucket_acl - unimplemented
+#s3tests_boto3/functional/test_s3.py::test_bucket_acl_grant_email_not_exist # Failed - get_bucket_acl - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_bucket_acl_revoke_all # Failed - get_bucket_acl - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_logging_toggle # Failed - put_bucket_logging - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_access_bucket_private_object_private # Failed - put_bucket_acl - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_access_bucket_private_objectv2_private # Failed - put_bucket_acl - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_access_bucket_private_object_publicread # Failed - put_bucket_acl - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_access_bucket_private_objectv2_publicread # Failed - put_bucket_acl - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_access_bucket_private_object_publicreadwrite # Failed - put_bucket_acl - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_access_bucket_private_objectv2_publicreadwrite # Failed - put_bucket_acl - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_access_bucket_publicread_object_private # Failed - put_bucket_acl - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_access_bucket_publicread_object_publicread # Failed - put_bucket_acl - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_access_bucket_publicread_object_publicreadwrite # Failed - put_bucket_acl - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_access_bucket_publicreadwrite_object_private # Failed - put_bucket_acl - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_access_bucket_publicreadwrite_object_publicread # Failed - put_bucket_acl - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_access_bucket_publicreadwrite_object_publicreadwrite # Failed - put_bucket_acl - NotImplemented
 s3tests_boto3/functional/test_s3.py::test_buckets_create_then_list
 s3tests_boto3/functional/test_s3.py::test_buckets_list_ctime
 #s3tests_boto3/functional/test_s3.py::test_list_buckets_anonymous # Skipped - fails_on_aws
@@ -279,25 +279,25 @@ s3tests_boto3/functional/test_s3.py::test_bucket_create_naming_good_starts_digit
 s3tests_boto3/functional/test_s3.py::test_bucket_create_naming_good_contains_period
 s3tests_boto3/functional/test_s3.py::test_bucket_create_naming_good_contains_hyphen
 #s3tests_boto3/functional/test_s3.py::test_bucket_recreate_not_overriding # Failed - create_bucket - BucketAlreadyOwnedByYou error
-#s3tests_boto3/functional/test_s3.py::test_bucket_create_special_key_names # Failed - put_object_acl - unimplemented
+#s3tests_boto3/functional/test_s3.py::test_bucket_create_special_key_names # Failed - put_object_acl - NotImplemented
 s3tests_boto3/functional/test_s3.py::test_bucket_list_special_prefix
-#s3tests_boto3/functional/test_s3.py::test_object_copy_zero_size # Failed - copy_object - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_object_copy_16m # Failed - copy_object - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_object_copy_same_bucket # Failed - copy_object - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_object_copy_verify_contenttype # Failed - copy_object - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_object_copy_to_itself # Failed - copy_object - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_object_copy_to_itself_with_metadata # Failed - copy_object - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_object_copy_diff_bucket # Failed - copy_object - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_object_copy_not_owned_bucket # Failed - copy_object - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_object_copy_not_owned_object_bucket # Failed - get_object_acl, copy_object - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_object_copy_canned_acl # Failed - copy_object - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_object_copy_retaining_metadata # Failed - copy_object - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_object_copy_replacing_metadata # Failed - copy_object - unimplemented
+#s3tests_boto3/functional/test_s3.py::test_object_copy_zero_size # Failed - copy_object - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_object_copy_16m # Failed - copy_object - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_object_copy_same_bucket # Failed - copy_object - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_object_copy_verify_contenttype # Failed - copy_object - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_object_copy_to_itself # Failed - copy_object - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_object_copy_to_itself_with_metadata # Failed - copy_object - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_object_copy_diff_bucket # Failed - copy_object - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_object_copy_not_owned_bucket # Failed - copy_object - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_object_copy_not_owned_object_bucket # Failed - get_object_acl, copy_object - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_object_copy_canned_acl # Failed - copy_object - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_object_copy_retaining_metadata # Failed - copy_object - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_object_copy_replacing_metadata # Failed - copy_object - NotImplemented
 s3tests_boto3/functional/test_s3.py::test_object_copy_bucket_not_found
 s3tests_boto3/functional/test_s3.py::test_object_copy_key_not_found
-#s3tests_boto3/functional/test_s3.py::test_object_copy_versioned_bucket # Failed - put_bucket_versioning, copy_object - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_object_copy_versioned_url_encoding # Failed - put_bucket_versioning, copy_object - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_object_copy_versioning_multipart_upload # Failed - put_bucket_versioning, copy_object - unimplemented
+#s3tests_boto3/functional/test_s3.py::test_object_copy_versioned_bucket # Failed - put_bucket_versioning, copy_object - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_object_copy_versioned_url_encoding # Failed - put_bucket_versioning, copy_object - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_object_copy_versioning_multipart_upload # Failed - put_bucket_versioning, copy_object - NotImplemented
 s3tests_boto3/functional/test_s3.py::test_multipart_upload_empty
 #s3tests_boto3/functional/test_s3.py::test_multipart_upload_small # Failed - complete_multipart_upload - NoSuchUpload error
 #s3tests_boto3/functional/test_s3.py::test_multipart_upload # Failed - complete_multipart_upload - NoSuchUpload error
@@ -311,22 +311,22 @@ s3tests_boto3/functional/test_s3.py::test_multipart_upload_incorrect_etag
 s3tests_boto3/functional/test_s3.py::test_abort_multipart_upload
 #s3tests_boto3/functional/test_s3.py::test_abort_multipart_upload_not_found # Failed - multipart_upload - client error not raised
 s3tests_boto3/functional/test_s3.py::test_list_multipart_upload
-#s3tests_boto3/functional/test_s3.py::test_list_multipart_upload_owner # Failed - put_bucket_acl - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_multipart_copy_small # Failed - upload_part_copy - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_multipart_copy_invalid_range # Failed - upload_part_copy - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_multipart_copy_improper_range # Failed - upload_part_copy - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_multipart_copy_without_range # Failed - upload_part_copy - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_multipart_copy_special_names # Failed - upload_part_copy - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_multipart_copy_versioned # Failed - put_bucket_versioning, upload_part_copy - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_multipart_copy_multiple_sizes # Failed - upload_part_copy - unimplemented
+#s3tests_boto3/functional/test_s3.py::test_list_multipart_upload_owner # Failed - put_bucket_acl - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_multipart_copy_small # Failed - upload_part_copy - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_multipart_copy_invalid_range # Failed - upload_part_copy - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_multipart_copy_improper_range # Failed - upload_part_copy - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_multipart_copy_without_range # Failed - upload_part_copy - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_multipart_copy_special_names # Failed - upload_part_copy - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_multipart_copy_versioned # Failed - put_bucket_versioning, upload_part_copy - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_multipart_copy_multiple_sizes # Failed - upload_part_copy - NotImplemented
 #s3tests_boto3/functional/test_s3.py::test_100_continue # Failed - _simple_http_req_100_cont - expected 403 but got 100
-#s3tests_boto3/functional/test_s3.py::test_set_cors # Failed - get_bucket_cors - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_cors_origin_response # Failed - get_bucket_cors - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_cors_origin_wildcard # Failed - get_bucket_cors - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_cors_header_option # Failed - get_bucket_cors - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_cors_presigned_get_object # Failed - put_object - unimplemented header, put_bucket_cors - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_cors_presigned_get_object_tenant # Failed - put_object - unimplemented header, put_bucket_cors - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_set_bucket_tagging # Failed - get_bucket_tagging - unimplemented
+#s3tests_boto3/functional/test_s3.py::test_set_cors # Failed - get_bucket_cors - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_cors_origin_response # Failed - get_bucket_cors - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_cors_origin_wildcard # Failed - get_bucket_cors - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_cors_header_option # Failed - get_bucket_cors - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_cors_presigned_get_object # Failed - put_object - NotImplemented, put_bucket_cors - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_cors_presigned_get_object_tenant # Failed - put_object - NotImplemented, put_bucket_cors - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_set_bucket_tagging # Failed - get_bucket_tagging - NotImplemented
 s3tests_boto3/functional/test_s3.py::test_atomic_read_1mb
 s3tests_boto3/functional/test_s3.py::test_atomic_read_4mb
 s3tests_boto3/functional/test_s3.py::test_atomic_read_8mb
@@ -347,28 +347,28 @@ s3tests_boto3/functional/test_s3.py::test_ranged_request_skip_leading_bytes_resp
 s3tests_boto3/functional/test_s3.py::test_ranged_request_return_trailing_bytes_response_code
 s3tests_boto3/functional/test_s3.py::test_ranged_request_invalid_range
 s3tests_boto3/functional/test_s3.py::test_ranged_request_empty_object
-#s3tests_boto3/functional/test_s3.py::test_versioning_bucket_create_suspend # Failed - put_bucket_versioning - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_versioning_obj_create_read_remove # Failed - put_bucket_versioning - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_versioning_obj_create_read_remove_head # Failed - put_bucket_versioning - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_versioning_obj_plain_null_version_removal # Failed - put_bucket_versioning - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_versioning_obj_plain_null_version_overwrite # Failed - put_bucket_versioning - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_versioning_obj_plain_null_version_overwrite_suspended # Failed - put_bucket_versioning - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_versioning_obj_suspend_versions # Failed - put_bucket_versioning - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_versioning_obj_create_versions_remove_all # Failed - put_bucket_versioning - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_versioning_obj_create_versions_remove_special_names # Failed - put_bucket_versioning - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_versioning_obj_create_overwrite_multipart # Failed - put_bucket_versioning - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_versioning_obj_list_marker # Failed - put_bucket_versioning - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_versioning_copy_obj_version # Failed - put_bucket_versioning - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_versioning_multi_object_delete # Failed - put_bucket_versioning - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_versioning_multi_object_delete_with_marker # Failed - put_bucket_versioning - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_versioning_multi_object_delete_with_marker_create # Failed - put_bucket_versioning - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_versioned_object_acl # Failed - put_bucket_versioning - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_versioned_object_acl_no_version_specified # Failed - put_bucket_versioning - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_versioned_concurrent_object_create_concurrent_remove # Failed - put_bucket_versioning - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_versioned_concurrent_object_create_and_remove # Failed - put_bucket_versioning - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_lifecycle_set # Failed - put_bucket_lifecycle_configuration - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_lifecycle_get # Failed - put_bucket_lifecycle_configuration - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_lifecycle_get_no_id # Failed - put_bucket_lifecycle_configuration - unimplemented
+#s3tests_boto3/functional/test_s3.py::test_versioning_bucket_create_suspend # Failed - put_bucket_versioning - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_versioning_obj_create_read_remove # Failed - put_bucket_versioning - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_versioning_obj_create_read_remove_head # Failed - put_bucket_versioning - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_versioning_obj_plain_null_version_removal # Failed - put_bucket_versioning - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_versioning_obj_plain_null_version_overwrite # Failed - put_bucket_versioning - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_versioning_obj_plain_null_version_overwrite_suspended # Failed - put_bucket_versioning - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_versioning_obj_suspend_versions # Failed - put_bucket_versioning - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_versioning_obj_create_versions_remove_all # Failed - put_bucket_versioning - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_versioning_obj_create_versions_remove_special_names # Failed - put_bucket_versioning - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_versioning_obj_create_overwrite_multipart # Failed - put_bucket_versioning - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_versioning_obj_list_marker # Failed - put_bucket_versioning - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_versioning_copy_obj_version # Failed - put_bucket_versioning - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_versioning_multi_object_delete # Failed - put_bucket_versioning - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_versioning_multi_object_delete_with_marker # Failed - put_bucket_versioning - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_versioning_multi_object_delete_with_marker_create # Failed - put_bucket_versioning - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_versioned_object_acl # Failed - put_bucket_versioning - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_versioned_object_acl_no_version_specified # Failed - put_bucket_versioning - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_versioned_concurrent_object_create_concurrent_remove # Failed - put_bucket_versioning - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_versioned_concurrent_object_create_and_remove # Failed - put_bucket_versioning - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_lifecycle_set # Failed - put_bucket_lifecycle_configuration - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_lifecycle_get # Failed - put_bucket_lifecycle_configuration - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_lifecycle_get_no_id # Failed - put_bucket_lifecycle_configuration - NotImplemented
 #s3tests_boto3/functional/test_s3.py::test_lifecycle_expiration # Skipped - fails_on_aws
 #s3tests_boto3/functional/test_s3.py::test_lifecyclev2_expiration # Skipped - fails_on_aws
 #s3tests_boto3/functional/test_s3.py::test_lifecycle_expiration_versioning_enabled # Skipped - fails_on_aws
@@ -376,26 +376,26 @@ s3tests_boto3/functional/test_s3.py::test_ranged_request_empty_object
 #s3tests_boto3/functional/test_s3.py::test_lifecycle_expiration_tags2 # Skipped - fails_on_aws
 #s3tests_boto3/functional/test_s3.py::test_lifecycle_expiration_versioned_tags2 # Skipped - fails_on_aws
 #s3tests_boto3/functional/test_s3.py::test_lifecycle_expiration_noncur_tags1 # Skipped - fails_on_aws
-#s3tests_boto3/functional/test_s3.py::test_lifecycle_id_too_long # Failed - put_bucket_lifecycle_configuration - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_lifecycle_same_id # Failed - put_bucket_lifecycle_configuration - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_lifecycle_invalid_status # Failed - put_bucket_lifecycle_configuration - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_lifecycle_set_date # Failed - put_bucket_lifecycle_configuration - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_lifecycle_set_invalid_date # Failed - put_bucket_lifecycle_configuration - unimplemented
+#s3tests_boto3/functional/test_s3.py::test_lifecycle_id_too_long # Failed - put_bucket_lifecycle_configuration - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_lifecycle_same_id # Failed - put_bucket_lifecycle_configuration - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_lifecycle_invalid_status # Failed - put_bucket_lifecycle_configuration - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_lifecycle_set_date # Failed - put_bucket_lifecycle_configuration - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_lifecycle_set_invalid_date # Failed - put_bucket_lifecycle_configuration - NotImplemented
 #s3tests_boto3/functional/test_s3.py::test_lifecycle_expiration_date # Skipped - fails_on_aws
-#s3tests_boto3/functional/test_s3.py::test_lifecycle_expiration_days0  # Failed - put_bucket_lifecycle_configuration - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_lifecycle_expiration_header_put # Failed - put_bucket_lifecycle_configuration - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_lifecycle_expiration_header_head # Failed - put_bucket_lifecycle_configuration - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_lifecycle_expiration_header_tags_head # Failed - put_bucket_lifecycle_configuration - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_lifecycle_expiration_header_and_tags_head # Failed - put_bucket_lifecycle_configuration - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_lifecycle_set_noncurrent # Failed - put_bucket_lifecycle_configuration - unimplemented
+#s3tests_boto3/functional/test_s3.py::test_lifecycle_expiration_days0  # Failed - put_bucket_lifecycle_configuration - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_lifecycle_expiration_header_put # Failed - put_bucket_lifecycle_configuration - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_lifecycle_expiration_header_head # Failed - put_bucket_lifecycle_configuration - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_lifecycle_expiration_header_tags_head # Failed - put_bucket_lifecycle_configuration - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_lifecycle_expiration_header_and_tags_head # Failed - put_bucket_lifecycle_configuration - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_lifecycle_set_noncurrent # Failed - put_bucket_lifecycle_configuration - NotImplemented
 #s3tests_boto3/functional/test_s3.py::test_lifecycle_noncur_expiration # Skipped - fails_on_aws
-#s3tests_boto3/functional/test_s3.py::test_lifecycle_set_deletemarker # Failed - put_bucket_lifecycle_configuration - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_lifecycle_set_filter # Failed - put_bucket_lifecycle_configuration - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_lifecycle_set_empty_filter # Failed - put_bucket_lifecycle_configuration - unimplemented
+#s3tests_boto3/functional/test_s3.py::test_lifecycle_set_deletemarker # Failed - put_bucket_lifecycle_configuration - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_lifecycle_set_filter # Failed - put_bucket_lifecycle_configuration - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_lifecycle_set_empty_filter # Failed - put_bucket_lifecycle_configuration - NotImplemented
 #s3tests_boto3/functional/test_s3.py::test_lifecycle_deletemarker_expiration # Skipped - fails_on_aws
-#s3tests_boto3/functional/test_s3.py::test_lifecycle_set_multipart # Failed - put_bucket_lifecycle_configuration - unimplemented
+#s3tests_boto3/functional/test_s3.py::test_lifecycle_set_multipart # Failed - put_bucket_lifecycle_configuration - NotImplemented
 #s3tests_boto3/functional/test_s3.py::test_lifecycle_multipart_expiration # Skipped - fails_on_aws
-#s3tests_boto3/functional/test_s3.py::test_lifecycle_transition_set_invalid_date # Failed - put_bucket_lifecycle_configuration - unimplemented
+#s3tests_boto3/functional/test_s3.py::test_lifecycle_transition_set_invalid_date # Failed - put_bucket_lifecycle_configuration - NotImplemented
 #s3tests_boto3/functional/test_s3.py::test_lifecycle_transition # Skipped - fails_on_aws
 #s3tests_boto3/functional/test_s3.py::test_lifecycle_transition_single_rule_multi_trans # Skipped - fails_on_aws
 s3tests_boto3/functional/test_s3.py::test_lifecycle_set_noncurrent_transition
@@ -405,153 +405,153 @@ s3tests_boto3/functional/test_s3.py::test_lifecycle_plain_null_version_current_t
 #s3tests_boto3/functional/test_s3.py::test_lifecycle_cloud_multiple_transition # Skipped - fails_on_aws
 #s3tests_boto3/functional/test_s3.py::test_lifecycle_noncur_cloud_transition # Skipped - fails_on_aws
 #s3tests_boto3/functional/test_s3.py::test_lifecycle_cloud_transition_large_obj # Skipped - fails_on_aws
-#s3tests_boto3/functional/test_s3.py::test_encrypted_transfer_1b # Failed - put_object - unimplemented header
-#s3tests_boto3/functional/test_s3.py::test_encrypted_transfer_1kb # Failed - put_object - unimplemented header
-#s3tests_boto3/functional/test_s3.py::test_encrypted_transfer_1MB # Failed - put_object - unimplemented header
-#s3tests_boto3/functional/test_s3.py::test_encrypted_transfer_13b # Failed - put_object - unimplemented header
-#s3tests_boto3/functional/test_s3.py::test_encryption_sse_c_method_head # Failed - put_object - unimplemented header
-#s3tests_boto3/functional/test_s3.py::test_encryption_sse_c_present # Failed - put_object - unimplemented header
-#s3tests_boto3/functional/test_s3.py::test_encryption_sse_c_other_key # Failed - put_object - unimplemented header
-#s3tests_boto3/functional/test_s3.py::test_encryption_sse_c_invalid_md5 # Failed - put_object - unimplemented header
+#s3tests_boto3/functional/test_s3.py::test_encrypted_transfer_1b # Failed - put_object - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_encrypted_transfer_1kb # Failed - put_object - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_encrypted_transfer_1MB # Failed - put_object - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_encrypted_transfer_13b # Failed - put_object - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_encryption_sse_c_method_head # Failed - put_object - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_encryption_sse_c_present # Failed - put_object - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_encryption_sse_c_other_key # Failed - put_object - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_encryption_sse_c_invalid_md5 # Failed - put_object - NotImplemented
 s3tests_boto3/functional/test_s3.py::test_encryption_sse_c_no_md5
 s3tests_boto3/functional/test_s3.py::test_encryption_sse_c_no_key
-#s3tests_boto3/functional/test_s3.py::test_encryption_key_no_sse_c # Failed - put_object - unimplemented header
-#s3tests_boto3/functional/test_s3.py::test_encryption_sse_c_multipart_upload # Failed - create_multipart_upload - unimplemented header
-#s3tests_boto3/functional/test_s3.py::test_encryption_sse_c_unaligned_multipart_upload # Failed - create_multipart_upload - unimplemented header
-#s3tests_boto3/functional/test_s3.py::test_encryption_sse_c_multipart_invalid_chunks_1 # Failed - create_multipart_upload - unimplemented header
-#s3tests_boto3/functional/test_s3.py::test_encryption_sse_c_multipart_invalid_chunks_2 # Failed - create_multipart_upload - unimplemented header
-#s3tests_boto3/functional/test_s3.py::test_encryption_sse_c_multipart_bad_download # Failed - create_multipart_upload - unimplemented header
-#s3tests_boto3/functional/test_s3.py::test_encryption_sse_c_post_object_authenticated_request # Failed - _get_post_url - expected 204 but got 405
-#s3tests_boto3/functional/test_s3.py::test_sse_kms_method_head # Failed - put_object - unimplemented header
-#s3tests_boto3/functional/test_s3.py::test_sse_kms_present # Failed - put_object - unimplemented header
+#s3tests_boto3/functional/test_s3.py::test_encryption_key_no_sse_c # Failed - put_object - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_encryption_sse_c_multipart_upload # Failed - create_multipart_upload - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_encryption_sse_c_unaligned_multipart_upload # Failed - create_multipart_upload - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_encryption_sse_c_multipart_invalid_chunks_1 # Failed - create_multipart_upload - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_encryption_sse_c_multipart_invalid_chunks_2 # Failed - create_multipart_upload - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_encryption_sse_c_multipart_bad_download # Failed - create_multipart_upload - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_encryption_sse_c_post_object_authenticated_request # Failed - _get_post_url - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_sse_kms_method_head # Failed - put_object - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_sse_kms_present # Failed - put_object - NotImplemented
 s3tests_boto3/functional/test_s3.py::test_sse_kms_no_key
-#s3tests_boto3/functional/test_s3.py::test_sse_kms_not_declared # Failed - put_object - unimplemented header
-#s3tests_boto3/functional/test_s3.py::test_sse_kms_multipart_upload # Failed - create_multipart_upload - unimplemented header
-#s3tests_boto3/functional/test_s3.py::test_sse_kms_multipart_invalid_chunks_1 # Failed - create_multipart_upload - unimplemented header
-#s3tests_boto3/functional/test_s3.py::test_sse_kms_multipart_invalid_chunks_2 # Failed - create_multipart_upload - unimplemented header
-#s3tests_boto3/functional/test_s3.py::test_sse_kms_post_object_authenticated_request # Failed - _get_post_url - expected 204 but got 405
-#s3tests_boto3/functional/test_s3.py::test_sse_kms_transfer_1b # Failed - put_object - unimplemented header
-#s3tests_boto3/functional/test_s3.py::test_sse_kms_transfer_1kb # Failed - put_object - unimplemented header
-#s3tests_boto3/functional/test_s3.py::test_sse_kms_transfer_1MB # Failed - put_object - unimplemented header
-#s3tests_boto3/functional/test_s3.py::test_sse_kms_transfer_13b # Failed - put_object - unimplemented header
-s3tests_boto3/functional/test_s3.py::test_sse_kms_read_declare # Failed - get_object - client error not raised
-#s3tests_boto3/functional/test_s3.py::test_bucket_policy # Failed - put_bucket_policy - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_bucketv2_policy # Failed - put_bucket_policy - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_bucket_policy_acl # Failed - put_bucket_acl - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_bucketv2_policy_acl # Failed - put_bucket_acl - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_bucket_policy_different_tenant # Failed - put_bucket_policy - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_bucketv2_policy_different_tenant # Failed - put_bucket_policy - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_bucket_policy_another_bucket # Failed - put_bucket_policy - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_bucketv2_policy_another_bucket # Failed - put_bucket_policy - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_bucket_policy_set_condition_operator_end_with_IfExists # Failed - put_bucket_policy - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_get_obj_tagging # Failed - put_object_tagging - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_get_obj_head_tagging # Failed - put_object_tagging - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_put_max_tags # Failed - put_object_tagging - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_put_excess_tags # Failed - put_object_tagging - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_put_max_kvsize_tags # Failed - put_object_tagging - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_put_excess_key_tags # Failed - put_object_tagging - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_put_excess_val_tags # Failed - put_object_tagging - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_put_modify_tags # Failed - put_object_tagging - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_put_delete_tags # Failed - put_object_tagging - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_post_object_tags_anonymous_request # Failed - _get_post_url - expected 204 but got 405
-#s3tests_boto3/functional/test_s3.py::test_post_object_tags_authenticated_request # Failed - _get_post_url - expected 204 but got 405
-#s3tests_boto3/functional/test_s3.py::test_put_obj_with_tags # Failed - put_object - unimplemented header
-#s3tests_boto3/functional/test_s3.py::test_get_tags_acl_public # Failed - put_bucket_policy - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_put_tags_acl_public # Failed - put_bucket_policy - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_delete_tags_obj_public # Failed - put_bucket_policy - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_versioning_bucket_atomic_upload_return_version_id # Failed - put_bucket_versioning - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_versioning_bucket_multipart_upload_return_version_id # Failed - put_bucket_versioning - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_bucket_policy_get_obj_existing_tag # Failed - put_bucket_policy - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_bucket_policy_get_obj_tagging_existing_tag # Failed - put_bucket_policy - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_bucket_policy_put_obj_tagging_existing_tag # Failed - put_bucket_policy - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_bucket_policy_put_obj_copy_source # Failed - put_bucket_policy - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_bucket_policy_put_obj_copy_source_meta # Failed - put_bucket_policy - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_bucket_policy_put_obj_acl # Failed - put_bucket_policy - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_bucket_policy_put_obj_grant # Failed - put_bucket_policy - unimplemented
+#s3tests_boto3/functional/test_s3.py::test_sse_kms_not_declared # Failed - put_object - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_sse_kms_multipart_upload # Failed - create_multipart_upload - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_sse_kms_multipart_invalid_chunks_1 # Failed - create_multipart_upload - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_sse_kms_multipart_invalid_chunks_2 # Failed - create_multipart_upload - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_sse_kms_post_object_authenticated_request # Failed - _get_post_url - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_sse_kms_transfer_1b # Failed - put_object - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_sse_kms_transfer_1kb # Failed - put_object - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_sse_kms_transfer_1MB # Failed - put_object - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_sse_kms_transfer_13b # Failed - put_object - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_sse_kms_read_declare # Failed - get_object - client error not raised
+#s3tests_boto3/functional/test_s3.py::test_bucket_policy # Failed - put_bucket_policy - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_bucketv2_policy # Failed - put_bucket_policy - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_bucket_policy_acl # Failed - put_bucket_acl - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_bucketv2_policy_acl # Failed - put_bucket_acl - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_bucket_policy_different_tenant # Failed - put_bucket_policy - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_bucketv2_policy_different_tenant # Failed - put_bucket_policy - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_bucket_policy_another_bucket # Failed - put_bucket_policy - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_bucketv2_policy_another_bucket # Failed - put_bucket_policy - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_bucket_policy_set_condition_operator_end_with_IfExists # Failed - put_bucket_policy - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_get_obj_tagging # Failed - put_object_tagging - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_get_obj_head_tagging # Failed - put_object_tagging - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_put_max_tags # Failed - put_object_tagging - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_put_excess_tags # Failed - put_object_tagging - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_put_max_kvsize_tags # Failed - put_object_tagging - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_put_excess_key_tags # Failed - put_object_tagging - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_put_excess_val_tags # Failed - put_object_tagging - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_put_modify_tags # Failed - put_object_tagging - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_put_delete_tags # Failed - put_object_tagging - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_post_object_tags_anonymous_request # Failed - _get_post_url - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_post_object_tags_authenticated_request # Failed - _get_post_url - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_put_obj_with_tags # Failed - put_object - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_get_tags_acl_public # Failed - put_bucket_policy - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_put_tags_acl_public # Failed - put_bucket_policy - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_delete_tags_obj_public # Failed - put_bucket_policy - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_versioning_bucket_atomic_upload_return_version_id # Failed - put_bucket_versioning - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_versioning_bucket_multipart_upload_return_version_id # Failed - put_bucket_versioning - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_bucket_policy_get_obj_existing_tag # Failed - put_bucket_policy - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_bucket_policy_get_obj_tagging_existing_tag # Failed - put_bucket_policy - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_bucket_policy_put_obj_tagging_existing_tag # Failed - put_bucket_policy - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_bucket_policy_put_obj_copy_source # Failed - put_bucket_policy - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_bucket_policy_put_obj_copy_source_meta # Failed - put_bucket_policy - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_bucket_policy_put_obj_acl # Failed - put_bucket_policy - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_bucket_policy_put_obj_grant # Failed - put_bucket_policy - NotImplemented
 s3tests_boto3/functional/test_s3.py::test_put_obj_enc_conflict_c_s3
 s3tests_boto3/functional/test_s3.py::test_put_obj_enc_conflict_c_kms
 s3tests_boto3/functional/test_s3.py::test_put_obj_enc_conflict_s3_kms
 s3tests_boto3/functional/test_s3.py::test_put_obj_enc_conflict_bad_enc_kms
-#s3tests_boto3/functional/test_s3.py::test_bucket_policy_put_obj_s3_noenc # Failed - put_bucket_policy - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_bucket_policy_put_obj_s3_kms # Failed - put_bucket_policy - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_bucket_policy_put_obj_kms_noenc # Failed - put_bucket_policy - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_bucket_policy_put_obj_kms_s3 # Failed - put_bucket_policy - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_bucket_policy_put_obj_request_obj_tag # Failed - put_bucket_policy - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_bucket_policy_get_obj_acl_existing_tag # Failed - put_bucket_policy - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_object_lock_put_obj_lock # Failed - create_bucket - unimplemented header
-#s3tests_boto3/functional/test_s3.py::test_object_lock_put_obj_lock_invalid_bucket # Failed - put_object_lock_configuration - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_object_lock_put_obj_lock_with_days_and_years # Failed - create_bucket - unimplemented header
-#s3tests_boto3/functional/test_s3.py::test_object_lock_put_obj_lock_invalid_days # Failed - create_bucket - unimplemented header
-#s3tests_boto3/functional/test_s3.py::test_object_lock_put_obj_lock_invalid_years # Failed - create_bucket - unimplemented header
-#s3tests_boto3/functional/test_s3.py::test_object_lock_put_obj_lock_invalid_mode # Failed - create_bucket - unimplemented header
-#s3tests_boto3/functional/test_s3.py::test_object_lock_put_obj_lock_invalid_status # Failed - create_bucket - unimplemented header
-#s3tests_boto3/functional/test_s3.py::test_object_lock_suspend_versioning # Failed - create_bucket - unimplemented header
-#s3tests_boto3/functional/test_s3.py::test_object_lock_get_obj_lock # Failed - create_bucket - unimplemented header
-#s3tests_boto3/functional/test_s3.py::test_object_lock_get_obj_lock_invalid_bucket # Failed - create_bucket - unimplemented header
-#s3tests_boto3/functional/test_s3.py::test_object_lock_put_obj_retention # Failed - create_bucket - unimplemented header
-#s3tests_boto3/functional/test_s3.py::test_object_lock_put_obj_retention_invalid_bucket # Failed - put_object_retention - unimplemented header
-#s3tests_boto3/functional/test_s3.py::test_object_lock_put_obj_retention_invalid_mode # Failed - create_bucket - unimplemented header
-#s3tests_boto3/functional/test_s3.py::test_object_lock_get_obj_retention # Failed - create_bucket - unimplemented header
-#s3tests_boto3/functional/test_s3.py::test_object_lock_get_obj_retention_iso8601 # Failed - create_bucket - unimplemented header
-#s3tests_boto3/functional/test_s3.py::test_object_lock_get_obj_retention_invalid_bucket # Failed - create_bucket - unimplemented header
-#s3tests_boto3/functional/test_s3.py::test_object_lock_put_obj_retention_versionid # Failed - create_bucket - unimplemented header
-#s3tests_boto3/functional/test_s3.py::test_object_lock_put_obj_retention_override_default_retention # Failed - create_bucket - unimplemented header
-#s3tests_boto3/functional/test_s3.py::test_object_lock_put_obj_retention_increase_period # Failed - create_bucket - unimplemented header
-#s3tests_boto3/functional/test_s3.py::test_object_lock_put_obj_retention_shorten_period # Failed - create_bucket - unimplemented header
-#s3tests_boto3/functional/test_s3.py::test_object_lock_put_obj_retention_shorten_period_bypass # Failed - create_bucket - unimplemented header
-#s3tests_boto3/functional/test_s3.py::test_object_lock_delete_object_with_retention # Failed - create_bucket - unimplemented header
-#s3tests_boto3/functional/test_s3.py::test_object_lock_delete_object_with_retention_and_marker # Failed - create_bucket - unimplemented header
-#s3tests_boto3/functional/test_s3.py::test_object_lock_multi_delete_object_with_retention # Failed - create_bucket - unimplemented header
-#s3tests_boto3/functional/test_s3.py::test_object_lock_put_legal_hold # Failed - create_bucket - unimplemented header
-#s3tests_boto3/functional/test_s3.py::test_object_lock_put_legal_hold_invalid_bucket # Failed - put_object_legal_hold - unimplemented header
-#s3tests_boto3/functional/test_s3.py::test_object_lock_put_legal_hold_invalid_status # Failed - create_bucket - unimplemented header
-#s3tests_boto3/functional/test_s3.py::test_object_lock_get_legal_hold # Failed - create_bucket - unimplemented header
-#s3tests_boto3/functional/test_s3.py::test_object_lock_get_legal_hold_invalid_bucket # Failed - get_object_legal_hold - unimplemented header
-#s3tests_boto3/functional/test_s3.py::test_object_lock_delete_object_with_legal_hold_on # Failed - create_bucket - unimplemented header
-#s3tests_boto3/functional/test_s3.py::test_object_lock_delete_object_with_legal_hold_off # Failed - create_bucket - unimplemented header
-#s3tests_boto3/functional/test_s3.py::test_object_lock_get_obj_metadata # Failed - create_bucket - unimplemented header
-#s3tests_boto3/functional/test_s3.py::test_object_lock_uploading_obj # Failed - create_bucket - unimplemented header
-#s3tests_boto3/functional/test_s3.py::test_object_lock_changing_mode_from_governance_with_bypass # Failed - create_bucket - unimplemented header
-#s3tests_boto3/functional/test_s3.py::test_object_lock_changing_mode_from_governance_without_bypass # Failed - create_bucket - unimplemented header
-#s3tests_boto3/functional/test_s3.py::test_object_lock_changing_mode_from_compliance # Failed - create_bucket - unimplemented header
-#s3tests_boto3/functional/test_s3.py::test_copy_object_ifmatch_good # Failed - copy_object - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_copy_object_ifmatch_failed # Failed - copy_object - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_copy_object_ifnonematch_good # Failed - copy_object - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_copy_object_ifnonematch_failed # Failed - copy_object - unimplemented
+#s3tests_boto3/functional/test_s3.py::test_bucket_policy_put_obj_s3_noenc # Failed - put_bucket_policy - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_bucket_policy_put_obj_s3_kms # Failed - put_bucket_policy - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_bucket_policy_put_obj_kms_noenc # Failed - put_bucket_policy - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_bucket_policy_put_obj_kms_s3 # Failed - put_bucket_policy - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_bucket_policy_put_obj_request_obj_tag # Failed - put_bucket_policy - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_bucket_policy_get_obj_acl_existing_tag # Failed - put_bucket_policy - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_object_lock_put_obj_lock # Failed - create_bucket - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_object_lock_put_obj_lock_invalid_bucket # Failed - put_object_lock_configuration - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_object_lock_put_obj_lock_with_days_and_years # Failed - create_bucket - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_object_lock_put_obj_lock_invalid_days # Failed - create_bucket - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_object_lock_put_obj_lock_invalid_years # Failed - create_bucket - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_object_lock_put_obj_lock_invalid_mode # Failed - create_bucket - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_object_lock_put_obj_lock_invalid_status # Failed - create_bucket - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_object_lock_suspend_versioning # Failed - create_bucket - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_object_lock_get_obj_lock # Failed - create_bucket - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_object_lock_get_obj_lock_invalid_bucket # Failed - create_bucket - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_object_lock_put_obj_retention # Failed - create_bucket - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_object_lock_put_obj_retention_invalid_bucket # Failed - put_object_retention - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_object_lock_put_obj_retention_invalid_mode # Failed - create_bucket - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_object_lock_get_obj_retention # Failed - create_bucket - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_object_lock_get_obj_retention_iso8601 # Failed - create_bucket - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_object_lock_get_obj_retention_invalid_bucket # Failed - create_bucket - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_object_lock_put_obj_retention_versionid # Failed - create_bucket - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_object_lock_put_obj_retention_override_default_retention # Failed - create_bucket - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_object_lock_put_obj_retention_increase_period # Failed - create_bucket - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_object_lock_put_obj_retention_shorten_period # Failed - create_bucket - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_object_lock_put_obj_retention_shorten_period_bypass # Failed - create_bucket - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_object_lock_delete_object_with_retention # Failed - create_bucket - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_object_lock_delete_object_with_retention_and_marker # Failed - create_bucket - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_object_lock_multi_delete_object_with_retention # Failed - create_bucket - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_object_lock_put_legal_hold # Failed - create_bucket - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_object_lock_put_legal_hold_invalid_bucket # Failed - put_object_legal_hold - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_object_lock_put_legal_hold_invalid_status # Failed - create_bucket - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_object_lock_get_legal_hold # Failed - create_bucket - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_object_lock_get_legal_hold_invalid_bucket # Failed - get_object_legal_hold - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_object_lock_delete_object_with_legal_hold_on # Failed - create_bucket - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_object_lock_delete_object_with_legal_hold_off # Failed - create_bucket - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_object_lock_get_obj_metadata # Failed - create_bucket - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_object_lock_uploading_obj # Failed - create_bucket - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_object_lock_changing_mode_from_governance_with_bypass # Failed - create_bucket - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_object_lock_changing_mode_from_governance_without_bypass # Failed - create_bucket - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_object_lock_changing_mode_from_compliance # Failed - create_bucket - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_copy_object_ifmatch_good # Failed - copy_object - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_copy_object_ifmatch_failed # Failed - copy_object - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_copy_object_ifnonematch_good # Failed - copy_object - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_copy_object_ifnonematch_failed # Failed - copy_object - NotImplemented
 #s3tests_boto3/functional/test_s3.py::test_object_read_unreadable # Failed - get_object - expected 400 but got 404
-#s3tests_boto3/functional/test_s3.py::test_get_bucket_policy_status # Failed - get_bucket_policy_status - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_get_public_acl_bucket_policy_status # Failed - put_bucket_acl - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_get_authpublic_acl_bucket_policy_status # Failed - put_bucket_acl - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_get_publicpolicy_acl_bucket_policy_status # Failed - get_bucket_policy_status - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_get_nonpublicpolicy_acl_bucket_policy_status # Failed - get_bucket_policy_status - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_get_nonpublicpolicy_deny_bucket_policy_status # Failed - get_bucket_policy_status - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_get_default_public_block # Failed - get_public_access_block - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_put_public_block # Failed - put_public_access_block - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_block_public_put_bucket_acls # Failed - put_public_access_block - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_block_public_object_canned_acls # Failed - put_public_access_block - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_block_public_policy # Failed - put_public_access_block - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_ignore_public_acls # Failed - put_bucket_acl - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_multipart_upload_on_a_bucket_with_policy # Failed - put_bucket_policy - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_put_bucket_encryption_s3 # Failed - put_bucket_encryption - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_put_bucket_encryption_kms # Failed - put_bucket_encryption - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_get_bucket_encryption_s3 # Failed - put_bucket_encryption - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_get_bucket_encryption_kms # Failed - put_bucket_encryption - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_delete_bucket_encryption_s3 # Failed - delete_bucket_encryption - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_delete_bucket_encryption_kms # Failed - delete_bucket_encryption - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_sse_s3_default_upload_1b # Failed - put_bucket_encryption - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_sse_s3_default_upload_1kb # Failed - put_bucket_encryption - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_sse_s3_default_upload_1mb # Failed - put_bucket_encryption - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_sse_s3_default_upload_8mb # Failed - put_bucket_encryption - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_sse_kms_default_upload_1b # Failed - put_bucket_encryption - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_sse_kms_default_upload_1kb # Failed - put_bucket_encryption - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_sse_kms_default_upload_1mb # Failed - put_bucket_encryption - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_sse_kms_default_upload_8mb # Failed - put_bucket_encryption - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_sse_s3_default_method_head # Failed - put_bucket_encryption - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_sse_s3_default_multipart_upload # Failed - put_bucket_encryption - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_sse_s3_default_post_object_authenticated_request # Failed - put_bucket_encryption - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_sse_kms_default_post_object_authenticated_request # Failed - put_bucket_encryption - unimplemented
-#s3tests_boto3/functional/test_s3.py::test_sse_s3_encrypted_upload_1b # Failed - put_object - unimplemented header
-#s3tests_boto3/functional/test_s3.py::test_sse_s3_encrypted_upload_1kb # Failed - put_object - unimplemented header
-#s3tests_boto3/functional/test_s3.py::test_sse_s3_encrypted_upload_1mb # Failed - put_object - unimplemented header
-#s3tests_boto3/functional/test_s3.py::test_sse_s3_encrypted_upload_8mb # Failed - put_object - unimplemented header
-#s3tests_boto3/functional/test_s3.py::test_get_object_torrent # Failed - get_object_torrent - unimplemented header
+#s3tests_boto3/functional/test_s3.py::test_get_bucket_policy_status # Failed - get_bucket_policy_status - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_get_public_acl_bucket_policy_status # Failed - put_bucket_acl - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_get_authpublic_acl_bucket_policy_status # Failed - put_bucket_acl - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_get_publicpolicy_acl_bucket_policy_status # Failed - get_bucket_policy_status - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_get_nonpublicpolicy_acl_bucket_policy_status # Failed - get_bucket_policy_status - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_get_nonpublicpolicy_deny_bucket_policy_status # Failed - get_bucket_policy_status - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_get_default_public_block # Failed - get_public_access_block - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_put_public_block # Failed - put_public_access_block - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_block_public_put_bucket_acls # Failed - put_public_access_block - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_block_public_object_canned_acls # Failed - put_public_access_block - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_block_public_policy # Failed - put_public_access_block - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_ignore_public_acls # Failed - put_bucket_acl - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_multipart_upload_on_a_bucket_with_policy # Failed - put_bucket_policy - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_put_bucket_encryption_s3 # Failed - put_bucket_encryption - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_put_bucket_encryption_kms # Failed - put_bucket_encryption - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_get_bucket_encryption_s3 # Failed - put_bucket_encryption - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_get_bucket_encryption_kms # Failed - put_bucket_encryption - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_delete_bucket_encryption_s3 # Failed - delete_bucket_encryption - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_delete_bucket_encryption_kms # Failed - delete_bucket_encryption - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_sse_s3_default_upload_1b # Failed - put_bucket_encryption - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_sse_s3_default_upload_1kb # Failed - put_bucket_encryption - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_sse_s3_default_upload_1mb # Failed - put_bucket_encryption - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_sse_s3_default_upload_8mb # Failed - put_bucket_encryption - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_sse_kms_default_upload_1b # Failed - put_bucket_encryption - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_sse_kms_default_upload_1kb # Failed - put_bucket_encryption - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_sse_kms_default_upload_1mb # Failed - put_bucket_encryption - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_sse_kms_default_upload_8mb # Failed - put_bucket_encryption - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_sse_s3_default_method_head # Failed - put_bucket_encryption - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_sse_s3_default_multipart_upload # Failed - put_bucket_encryption - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_sse_s3_default_post_object_authenticated_request # Failed - put_bucket_encryption - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_sse_kms_default_post_object_authenticated_request # Failed - put_bucket_encryption - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_sse_s3_encrypted_upload_1b # Failed - put_object - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_sse_s3_encrypted_upload_1kb # Failed - put_object - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_sse_s3_encrypted_upload_1mb # Failed - put_object - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_sse_s3_encrypted_upload_8mb # Failed - put_object - NotImplemented
+#s3tests_boto3/functional/test_s3.py::test_get_object_torrent # Failed - get_object_torrent - NotImplemented
