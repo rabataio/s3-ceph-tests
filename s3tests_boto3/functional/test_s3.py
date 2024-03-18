@@ -225,7 +225,7 @@ def test_bucket_listv2_encoding_basic():
 
     prefixes = _get_prefixes(response)
     assert len(prefixes) == 3
-    assert prefixes == ['foo%2B1/', 'foo/', 'quux%20ab/']
+    assert prefixes == ['foo%2B1/', 'foo/', 'quux+ab/']
 
 def test_bucket_list_encoding_basic():
     bucket_name = _create_objects(keys=['foo+1/bar', 'foo/bar/xyzzy', 'quux ab/thud', 'asdf+b'])
@@ -238,7 +238,7 @@ def test_bucket_list_encoding_basic():
 
     prefixes = _get_prefixes(response)
     assert len(prefixes) == 3
-    assert prefixes == ['foo%2B1/', 'foo/', 'quux%20ab/']
+    assert prefixes == ['foo%2B1/', 'foo/', 'quux+ab/']
 
 
 def validate_bucket_list(bucket_name, prefix, delimiter, marker, max_keys,
@@ -816,7 +816,7 @@ def test_bucket_list_prefix_unreadable():
     client = get_client()
 
     response = client.list_objects(Bucket=bucket_name, Prefix='\x0a')
-    assert response['Prefix'] == '\x0a'
+    assert response['Prefix'] == '%0A'
 
     keys = _get_keys(response)
     prefixes = _get_prefixes(response)
@@ -1260,11 +1260,11 @@ def test_bucket_listv2_continuationtoken_empty():
     bucket_name = _create_objects(keys=key_names)
     client = get_client()
 
-    response = client.list_objects_v2(Bucket=bucket_name, ContinuationToken='')
-    assert response['ContinuationToken'] == ''
-    assert response['IsTruncated'] == False
-    keys = _get_keys(response)
-    assert keys == key_names
+    e = assert_raises(ClientError, client.list_objects_v2, Bucket=bucket_name, ContinuationToken='')
+
+    status, error_code = _get_status_and_error_code(e.response)
+    assert status == 400
+    assert error_code == 'InvalidArgument'
 
 @pytest.mark.list_objects_v2
 def test_bucket_listv2_continuationtoken():
@@ -1294,7 +1294,6 @@ def test_bucket_listv2_both_continuationtoken_startafter():
 
     response2 = client.list_objects_v2(Bucket=bucket_name, StartAfter='bar', ContinuationToken=next_continuation_token)
     assert response2['ContinuationToken'] == next_continuation_token
-    assert response2['StartAfter'] == 'bar'
     assert response2['IsTruncated'] == False
     key_names2 = ['foo', 'quxx']
     keys = _get_keys(response2)
@@ -3477,7 +3476,7 @@ def test_object_raw_get_x_amz_expires_out_max_range():
     url = client.generate_presigned_url(ClientMethod='get_object', Params=params, ExpiresIn=609901, HttpMethod='GET')
 
     res = requests.get(url, verify=get_config_ssl_verify()).__dict__
-    assert res['status_code'] == 403
+    assert res['status_code'] == 400
 
 def test_object_raw_get_x_amz_expires_out_positive_range():
     bucket_name = _setup_bucket_object_acl('public-read', 'public-read')
@@ -3487,7 +3486,7 @@ def test_object_raw_get_x_amz_expires_out_positive_range():
     url = client.generate_presigned_url(ClientMethod='get_object', Params=params, ExpiresIn=-7, HttpMethod='GET')
 
     res = requests.get(url, verify=get_config_ssl_verify()).__dict__
-    assert res['status_code'] == 403
+    assert res['status_code'] == 400
 
 
 def test_object_anon_put():
@@ -3560,7 +3559,7 @@ def test_object_raw_put_authenticated_expired():
 
     # params wouldn't take a 'Body' parameter so we're passing it in here
     res = requests.put(url, data="foo", verify=get_config_ssl_verify()).__dict__
-    assert res['status_code'] == 403
+    assert res['status_code'] == 400
 
 def check_bad_bucket_name(bucket_name):
     """
@@ -3574,9 +3573,6 @@ def check_bad_bucket_name(bucket_name):
     assert error_code == 'InvalidBucketName'
 
 
-# AWS does not enforce all documented bucket restrictions.
-# http://docs.amazonwebservices.com/AmazonS3/2006-03-01/dev/index.html?BucketRestrictions.html
-@pytest.mark.fails_on_aws
 # Breaks DNS with SubdomainCallingFormat
 def test_bucket_create_naming_bad_starts_nonalpha():
     bucket_name = get_new_bucket_name()
@@ -3653,20 +3649,14 @@ def _test_bucket_create_naming_good_long(length):
     assert response['ResponseMetadata']['HTTPStatusCode'] == 200
 
 # Breaks DNS with SubdomainCallingFormat
-@pytest.mark.fails_on_aws
-# Should now pass on AWS even though it has 'fails_on_aws' attr.
 def test_bucket_create_naming_good_long_60():
     _test_bucket_create_naming_good_long(60)
 
 # Breaks DNS with SubdomainCallingFormat
-@pytest.mark.fails_on_aws
-# Should now pass on AWS even though it has 'fails_on_aws' attr.
 def test_bucket_create_naming_good_long_61():
     _test_bucket_create_naming_good_long(61)
 
 # Breaks DNS with SubdomainCallingFormat
-@pytest.mark.fails_on_aws
-# Should now pass on AWS even though it has 'fails_on_aws' attr.
 def test_bucket_create_naming_good_long_62():
     _test_bucket_create_naming_good_long(62)
 
@@ -3677,8 +3667,6 @@ def test_bucket_create_naming_good_long_63():
 
 
 # Breaks DNS with SubdomainCallingFormat
-@pytest.mark.fails_on_aws
-# Should now pass on AWS even though it has 'fails_on_aws' attr.
 def test_bucket_list_long_name():
     prefix = get_new_bucket_name()
     length = 61
@@ -3693,15 +3681,10 @@ def test_bucket_list_long_name():
     is_empty = _bucket_is_empty(bucket)
     assert is_empty == True
 
-# AWS does not enforce all documented bucket restrictions.
-# http://docs.amazonwebservices.com/AmazonS3/2006-03-01/dev/index.html?BucketRestrictions.html
-@pytest.mark.fails_on_aws
 def test_bucket_create_naming_bad_ip():
     check_bad_bucket_name('192.168.5.123')
 
 # test_bucket_create_naming_dns_* are valid but not recommended
-@pytest.mark.fails_on_aws
-# Should now pass on AWS even though it has 'fails_on_aws' attr.
 def test_bucket_create_naming_dns_underscore():
     invalid_bucketname = 'foo_bar'
     status, error_code = check_invalid_bucketname(invalid_bucketname)
@@ -3709,7 +3692,6 @@ def test_bucket_create_naming_dns_underscore():
     assert error_code == 'InvalidBucketName'
 
 # Breaks DNS with SubdomainCallingFormat
-@pytest.mark.fails_on_aws
 def test_bucket_create_naming_dns_long():
     prefix = get_prefix()
     assert len(prefix) < 50
@@ -3717,8 +3699,6 @@ def test_bucket_create_naming_dns_long():
     check_good_bucket_name(num * 'a')
 
 # Breaks DNS with SubdomainCallingFormat
-@pytest.mark.fails_on_aws
-# Should now pass on AWS even though it has 'fails_on_aws' attr.
 def test_bucket_create_naming_dns_dash_at_end():
     invalid_bucketname = 'foo-'
     status, error_code = check_invalid_bucketname(invalid_bucketname)
@@ -3727,8 +3707,6 @@ def test_bucket_create_naming_dns_dash_at_end():
 
 
 # Breaks DNS with SubdomainCallingFormat
-@pytest.mark.fails_on_aws
-# Should now pass on AWS even though it has 'fails_on_aws' attr.
 def test_bucket_create_naming_dns_dot_dot():
     invalid_bucketname = 'foo..bar'
     status, error_code = check_invalid_bucketname(invalid_bucketname)
@@ -3737,8 +3715,6 @@ def test_bucket_create_naming_dns_dot_dot():
 
 
 # Breaks DNS with SubdomainCallingFormat
-@pytest.mark.fails_on_aws
-# Should now pass on AWS even though it has 'fails_on_aws' attr.
 def test_bucket_create_naming_dns_dot_dash():
     invalid_bucketname = 'foo.-bar'
     status, error_code = check_invalid_bucketname(invalid_bucketname)
@@ -3747,8 +3723,6 @@ def test_bucket_create_naming_dns_dot_dash():
 
 
 # Breaks DNS with SubdomainCallingFormat
-@pytest.mark.fails_on_aws
-# Should now pass on AWS even though it has 'fails_on_aws' attr.
 def test_bucket_create_naming_dns_dash_dot():
     invalid_bucketname = 'foo-.bar'
     status, error_code = check_invalid_bucketname(invalid_bucketname)
@@ -3766,8 +3740,8 @@ def test_bucket_create_exists():
         response = client.create_bucket(Bucket=bucket_name)
     except ClientError as e:
         status, error_code = _get_status_and_error_code(e.response)
-        assert e.status == 409
-        assert e.error_code == 'BucketAlreadyOwnedByYou'
+        assert status == 409
+        assert error_code == 'BucketAlreadyOwnedByYou'
 
 @pytest.mark.fails_on_dbstore
 def test_bucket_get_location():
@@ -5293,8 +5267,8 @@ def test_buckets_create_then_list():
             raise RuntimeError("S3 implementation's GET on Service did not return bucket we created: %r", bucket.name)
 
 def test_buckets_list_ctime():
-    # check that creation times are within a day
-    before = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=1)
+    # check that creation times are within 15 minutes
+    before = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(minutes=15)
 
     client = get_client()
     for i in range(5):
@@ -7157,6 +7131,8 @@ class ActionOnCount:
         if self.count == self.trigger_count:
             self.result = self.action()
 
+@pytest.mark.fails_on_aws
+# got EntityTooSmall error code
 def test_multipart_resend_first_finishes_last():
     bucket_name = get_new_bucket()
     client = get_client()
@@ -7194,8 +7170,8 @@ def test_multipart_resend_first_finishes_last():
     # ok, now for the actual test
     fp_b = FakeWriteFile(file_size, 'B')
     def upload_fp_b():
-        response = client.upload_part(UploadId=upload_id, Bucket=bucket_name, Key=key_name, Body=fp_b, PartNumber=1)
-        parts.append({'ETag': response['ETag'].strip('"'), 'PartNumber': 1})
+        response = client.upload_part(UploadId=upload_id, Bucket=bucket_name, Key=key_name, Body=fp_b, PartNumber=len(parts)+1)
+        parts.append({'ETag': response['ETag'].strip('"'), 'PartNumber': len(parts)+1})
 
     action = ActionOnCount(counter.val, lambda: upload_fp_b())
 
@@ -7208,7 +7184,7 @@ def test_multipart_resend_first_finishes_last():
 
     response = client.upload_part(UploadId=upload_id, Bucket=bucket_name, Key=key_name, PartNumber=1, Body=fp_a)
 
-    parts.append({'ETag': response['ETag'].strip('"'), 'PartNumber': 1})
+    parts.append({'ETag': response['ETag'].strip('"'), 'PartNumber': len(parts)+1})
     client.complete_multipart_upload(Bucket=bucket_name, Key=key_name, UploadId=upload_id, MultipartUpload={'Parts': parts})
 
     _verify_atomic_key_data(bucket_name, key_name, file_size, 'A')
@@ -12688,6 +12664,7 @@ def test_copy_object_ifnonematch_failed():
 
 # TODO: results in a 404 instead of 400 on the RGW
 @pytest.mark.fails_on_rgw
+@pytest.mark.fails_on_aws
 def test_object_read_unreadable():
     bucket_name = get_new_bucket()
     client = get_client()

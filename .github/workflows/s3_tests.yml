@@ -14,6 +14,7 @@ jobs:
 
       - uses: ./.github/actions/run-s3tests
         with:
+          HOST: ${{ vars.HOST }}
           MAIN_ACCESS_KEY: ${{ vars.MAIN_ACCESS_KEY }}
           MAIN_SECRET_KEY: ${{ secrets.MAIN_SECRET_KEY }}
           ALT_ACCESS_KEY: ${{ vars.ALT_ACCESS_KEY }}
