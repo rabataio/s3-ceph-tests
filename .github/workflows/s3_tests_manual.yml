@@ -1,0 +1,29 @@
+name: Ceph S3 Tests
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: 'Environment'
+        default: RCS stage
+        type: string
+        required: false
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment'
+        default: RCS stage
+        type: environment
+        required: true
+
+jobs:
+  s3_test:
+    if: inputs.environment == 'RCS stage'
+    uses: ./.github/workflows/s3_tests_reusable.yml
+    with:
+      HOST: ${{ vars.HOST }}
+      MAIN_ACCESS_KEY: ${{ vars.MAIN_ACCESS_KEY }}
+      ALT_ACCESS_KEY: ${{ vars.ALT_ACCESS_KEY }}
+    secrets:
+      MAIN_SECRET_KEY: ${{ secrets.MAIN_SECRET_KEY }}
+      ALT_SECRET_KEY: ${{ secrets.ALT_SECRET_KEY }}
