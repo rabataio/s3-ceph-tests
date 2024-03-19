@@ -9,11 +9,9 @@ on:
 
 jobs:
   s3_test:
-    uses: ./.github/workflows/s3_tests_reusable.yml
+    uses: ./.github/workflows/s3_tests_manual.yml
     with:
-      HOST: ${{ vars.HOST }}
-      MAIN_ACCESS_KEY: ${{ vars.MAIN_ACCESS_KEY }}
-      ALT_ACCESS_KEY: ${{ vars.ALT_ACCESS_KEY }}
+      environment: RCS stage
     secrets:
       MAIN_SECRET_KEY: ${{ secrets.MAIN_SECRET_KEY }}
       ALT_SECRET_KEY: ${{ secrets.ALT_SECRET_KEY }}
