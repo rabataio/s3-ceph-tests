@@ -1073,3 +1073,12 @@ def routing_check(*args, **kwargs):
         _website_expected_error_response(res, bucket.name, args['code'], IGNORE_FIELD, IGNORE_FIELD)
     else:
         assert(False)
+
+@pytest.mark.s3website_routing_rules
+@pytest.mark.s3website
+@pytest.mark.fails_on_dbstore
+def test_routing_generator():
+    for t in ROUTING_RULES_TESTS:
+        if 'xml' in t and 'RoutingRules' in t['xml'] and len(t['xml']['RoutingRules']) > 0:
+            t['xml']['RoutingRules'] = common.trim_xml(t['xml']['RoutingRules'])
+        yield routing_check, t

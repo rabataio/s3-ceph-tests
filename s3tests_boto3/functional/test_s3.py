@@ -1294,6 +1294,7 @@ def test_bucket_listv2_both_continuationtoken_startafter():
 
     response2 = client.list_objects_v2(Bucket=bucket_name, StartAfter='bar', ContinuationToken=next_continuation_token)
     assert response2['ContinuationToken'] == next_continuation_token
+    assert 'StartAfter' not in response2
     assert response2['IsTruncated'] == False
     key_names2 = ['foo', 'quxx']
     keys = _get_keys(response2)
@@ -3573,7 +3574,6 @@ def check_bad_bucket_name(bucket_name):
     assert error_code == 'InvalidBucketName'
 
 
-# Breaks DNS with SubdomainCallingFormat
 def test_bucket_create_naming_bad_starts_nonalpha():
     bucket_name = get_new_bucket_name()
     check_bad_bucket_name('_' + bucket_name)
@@ -3648,25 +3648,20 @@ def _test_bucket_create_naming_good_long(length):
     response = client.create_bucket(Bucket=bucket_name)
     assert response['ResponseMetadata']['HTTPStatusCode'] == 200
 
-# Breaks DNS with SubdomainCallingFormat
 def test_bucket_create_naming_good_long_60():
     _test_bucket_create_naming_good_long(60)
 
-# Breaks DNS with SubdomainCallingFormat
 def test_bucket_create_naming_good_long_61():
     _test_bucket_create_naming_good_long(61)
 
-# Breaks DNS with SubdomainCallingFormat
 def test_bucket_create_naming_good_long_62():
     _test_bucket_create_naming_good_long(62)
 
 
-# Breaks DNS with SubdomainCallingFormat
 def test_bucket_create_naming_good_long_63():
     _test_bucket_create_naming_good_long(63)
 
 
-# Breaks DNS with SubdomainCallingFormat
 def test_bucket_list_long_name():
     prefix = get_new_bucket_name()
     length = 61
@@ -3691,14 +3686,12 @@ def test_bucket_create_naming_dns_underscore():
     assert status == 400
     assert error_code == 'InvalidBucketName'
 
-# Breaks DNS with SubdomainCallingFormat
 def test_bucket_create_naming_dns_long():
     prefix = get_prefix()
     assert len(prefix) < 50
     num = 63 - len(prefix)
     check_good_bucket_name(num * 'a')
 
-# Breaks DNS with SubdomainCallingFormat
 def test_bucket_create_naming_dns_dash_at_end():
     invalid_bucketname = 'foo-'
     status, error_code = check_invalid_bucketname(invalid_bucketname)
@@ -3706,7 +3699,6 @@ def test_bucket_create_naming_dns_dash_at_end():
     assert error_code == 'InvalidBucketName'
 
 
-# Breaks DNS with SubdomainCallingFormat
 def test_bucket_create_naming_dns_dot_dot():
     invalid_bucketname = 'foo..bar'
     status, error_code = check_invalid_bucketname(invalid_bucketname)
@@ -3714,7 +3706,6 @@ def test_bucket_create_naming_dns_dot_dot():
     assert error_code == 'InvalidBucketName'
 
 
-# Breaks DNS with SubdomainCallingFormat
 def test_bucket_create_naming_dns_dot_dash():
     invalid_bucketname = 'foo.-bar'
     status, error_code = check_invalid_bucketname(invalid_bucketname)
@@ -3722,7 +3713,6 @@ def test_bucket_create_naming_dns_dot_dash():
     assert error_code == 'InvalidBucketName'
 
 
-# Breaks DNS with SubdomainCallingFormat
 def test_bucket_create_naming_dns_dash_dot():
     invalid_bucketname = 'foo-.bar'
     status, error_code = check_invalid_bucketname(invalid_bucketname)
@@ -5271,13 +5261,21 @@ def test_buckets_list_ctime():
     before = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(minutes=15)
 
     client = get_client()
+    bucket_names = []
     for i in range(5):
-        client.create_bucket(Bucket=get_new_bucket_name())
+        bucket_name = get_new_bucket_name()
+        print(bucket_name)
+        bucket_names.append(bucket_name)
+
+    for name in bucket_names:
+        client.create_bucket(Bucket=name)
 
     response = client.list_buckets()
     for bucket in response['Buckets']:
-        ctime = bucket['CreationDate']
-        assert before <= ctime, '%r > %r' % (before, ctime)
+        if bucket['Name'] in bucket_names:
+            print(bucket['Name'])
+            ctime = bucket['CreationDate']
+            assert before <= ctime, '%r > %r' % (before, ctime)
 
 @pytest.mark.fails_on_aws
 def test_list_buckets_anonymous():
