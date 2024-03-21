@@ -64,7 +64,7 @@ def nuke_prefixed_buckets_on_conn(prefix, name, conn):
         prefix=prefix,
         ))
 
-    for bucket in conn.get_all_buckets():
+    for bucket in conn.get_all_buckets(headers=dict(Host=conn.host)):
         print('prefix=',prefix)
         if bucket.name.startswith(prefix):
             print('Cleaning bucket {bucket}'.format(bucket=bucket))
@@ -72,7 +72,7 @@ def nuke_prefixed_buckets_on_conn(prefix, name, conn):
             for i in range(2):
                 try:
                     try:
-                        iterator = iter(bucket.list_versions())
+                        iterator = iter(bucket.list_versions(headers=dict(Host=conn.host)))
                         # peek into iterator to issue list operation
                         try:
                             keys = itertools.chain([next(iterator)], iterator)
@@ -83,16 +83,16 @@ def nuke_prefixed_buckets_on_conn(prefix, name, conn):
                         # versioning - fall back to listing without versions
                         if e.error_code != 'NotImplemented':
                             raise e
-                        keys = bucket.list();
+                        keys = bucket.list(headers=dict(Host=conn.host));
                     for key in keys:
                         print('Cleaning bucket {bucket} key {key}'.format(
                             bucket=bucket,
                             key=key,
                             ))
                         # key.set_canned_acl('private')
-                        bucket.delete_key(key.name, version_id = key.version_id)
+                        bucket.delete_key(key.name, version_id = key.version_id, headers=dict(Host=conn.host))
                     try:
-                        bucket.delete()
+                        bucket.delete(headers=dict(Host=conn.host))
                     except boto.exception.S3ResponseError as e:
                         # if DELETE times out, the retry may see NoSuchBucket
                         if e.error_code != 'NoSuchBucket':
@@ -119,18 +119,18 @@ def nuke_prefixed_buckets(prefix):
         for name, conn in list(s3.items()):
             print('Deleting buckets on {name}'.format(name=name))
             nuke_prefixed_buckets_on_conn(prefix, name, conn)
-    else: 
-		    # First, delete all buckets on the master connection 
+    else:
+		    # First, delete all buckets on the master connection
 		    for name, conn in list(s3.items()):
 		        if conn == targets.main.master.connection:
 		            print('Deleting buckets on {name} (master)'.format(name=name))
 		            nuke_prefixed_buckets_on_conn(prefix, name, conn)
-		
+
 		    # Then sync to propagate deletes to secondaries
 		    region_sync_meta(targets.main, targets.main.master.connection)
 		    print('region-sync in nuke_prefixed_buckets')
-		
-		    # Now delete remaining buckets on any other connection 
+
+		    # Now delete remaining buckets on any other connection
 		    for name, conn in list(s3.items()):
 		        if conn != targets.main.master.connection:
 		            print('Deleting buckets on {name} (non-master)'.format(name=name))
@@ -414,7 +414,12 @@ def get_new_bucket(target=None, name=None, headers=None):
     # the only way for this to fail with a pre-existing bucket is if
     # someone raced us between setup nuke_prefixed_buckets and here;
     # ignore that as astronomically unlikely
-    bucket = connection.create_bucket(name, location=target.conf.api_name, headers=headers)
+    if headers is None:
+        headers = dict(Host=connection.host)
+    else:
+        headers['Host'] = connection.host
+
+    bucket = connection.create_bucket(name, headers=headers)
     return bucket
 
 def _make_request(method, bucket, key, body=None, authenticated=False, response_headers=None, request_headers=None, expires_in=100000, path_style=True, timeout=None):

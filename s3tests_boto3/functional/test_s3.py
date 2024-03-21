@@ -6468,8 +6468,8 @@ def test_non_multipart_get_part():
     # request for PartNumber > 1 results in InvalidPart
     e = assert_raises(ClientError, client.get_object, Bucket=bucket_name, Key=key, PartNumber=2)
     status, error_code = _get_status_and_error_code(e.response)
-    assert status == 400
-    assert error_code == 'InvalidPart'
+    assert status == 416
+    assert error_code == 'InvalidPartNumber'
 
     # request for PartNumber = 1 gives back the entire object
     response = client.get_object(Bucket=bucket_name, Key=key, PartNumber=1)

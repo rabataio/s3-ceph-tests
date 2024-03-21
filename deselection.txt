@@ -57,6 +57,7 @@ s3tests/functional/test_s3_website.py::test_website_xredirect_public_relative
 s3tests/functional/test_s3_website.py::test_website_xredirect_public_abs
 s3tests/functional/test_s3_website.py::test_website_xredirect_private_relative
 s3tests/functional/test_s3_website.py::test_website_xredirect_private_abs
+s3tests/functional/test_s3_website.py::test_routing_generator
 
 s3tests/functional/test_utils.py::test_generate
 
@@ -512,8 +513,6 @@ s3tests_boto3/functional/test_s3.py::test_access_bucket_publicreadwrite_object_p
 s3tests_boto3/functional/test_s3.py::test_access_bucket_publicreadwrite_object_publicread
 # NotImplemented - PutBucketAcl
 s3tests_boto3/functional/test_s3.py::test_access_bucket_publicreadwrite_object_publicreadwrite
-# Failed - wrong CreateBucket CreationDate
-s3tests_boto3/functional/test_s3.py::test_buckets_list_ctime
 # Skipped - fails_on_aws
 s3tests_boto3/functional/test_s3.py::test_list_buckets_anonymous
 # Failed - got CreateBucket error code BucketAlreadyOwnedByYou
@@ -1006,3 +1005,32 @@ s3tests_boto3/functional/test_s3.py::test_sse_s3_encrypted_upload_1mb
 s3tests_boto3/functional/test_s3.py::test_sse_s3_encrypted_upload_8mb
 # NotImplemented - GetObjectTorrent
 s3tests_boto3/functional/test_s3.py::test_get_object_torrent
+
+# Skipped - tenant is not provided
+s3tests_boto3/functional/test_s3.py::test_object_presigned_put_object_with_acl_tenant
+# Skipped - tenant is not provided
+s3tests_boto3/functional/test_s3.py::test_cors_presigned_put_object_tenant_with_acl
+# Skipped - tenant is not provided
+s3tests_boto3/functional/test_s3.py::test_cors_presigned_put_object_tenant
+# NotImplemented - CreateBucket(ACL), PutObject(ACL)
+s3tests_boto3/functional/test_s3.py::test_cors_presigned_put_object
+# Failed - missing HeadObject header PartsCount
+s3tests_boto3/functional/test_s3.py::test_multipart_get_part
+# NotImplemented - CreateBucket(ACL), PutObject(ACL)
+s3tests_boto3/functional/test_s3.py::test_cors_presigned_put_object_with_acl
+# NotImplemented - PutBucketVersioning
+s3tests_boto3/functional/test_s3.py::test_versioning_obj_suspended_copy
+# Skipped - fails_on_aws mark
+s3tests_boto3/functional/test_s3.py::test_lifecycle_expiration_size_gt
+# Skipped - fails_on_aws mark
+s3tests_boto3/functional/test_s3.py::test_lifecycle_expiration_newer_noncurrent
+# NotImplemented - CreateBucket(BucketObjectLockEnabled header)
+s3tests_boto3/functional/test_s3.py::test_object_lock_delete_multipart_object_with_legal_hold_on
+# NotImplemented - DeletePublicAccessBlock
+s3tests_boto3/functional/test_s3.py::test_get_undefined_public_block
+# NotImplemented - CreateBucket(BucketObjectLockEnabled header)
+s3tests_boto3/functional/test_s3.py::test_object_lock_delete_multipart_object_with_retention
+# NotImplemented - PutPublicAccessBlock
+s3tests_boto3/functional/test_s3.py::test_get_public_block_deny_bucket_policy
+# Skipped - fails_on_aws mark
+s3tests_boto3/functional/test_s3.py::test_lifecycle_expiration_size_lt

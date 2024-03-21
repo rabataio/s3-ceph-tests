@@ -135,7 +135,7 @@ def _clear_custom_headers():
     _remove_headers = []
 
 @pytest.fixture(autouse=True)
-def clear_custom_headers(setup_teardown, hook_headers):
+def clear_custom_headers(setup_teardown):
     _add_custom_headers(headers=dict(Host=targets.main.default.connection.host)) # TODO: delete when MalformedXML will be fixed
     yield
     _clear_custom_headers() # clear headers before teardown()
