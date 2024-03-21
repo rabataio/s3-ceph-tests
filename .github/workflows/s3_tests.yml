@@ -6,18 +6,6 @@ on:
       - master
   schedule:
     - cron: '0 7 * * *'
-  workflow_call:
-    inputs:
-      environment:
-        description: 'Environment'
-        default: RCS stage
-        type: string
-        required: false
-    secrets:
-      MAIN_SECRET_KEY:
-        required: true
-      ALT_SECRET_KEY:
-        required: true
   workflow_dispatch:
     inputs:
       environment:

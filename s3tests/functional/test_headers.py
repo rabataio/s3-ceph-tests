@@ -81,7 +81,7 @@ def _our_authorize(self, connection, **kwargs):
     _orig_authorize(self, connection, **kwargs)
     _update_headers(self.headers)
 
-@pytest.fixture(autouse=True)
+@pytest.fixture()
 def hook_headers(setup_teardown):
     boto_type = None
     _orig_conn = {}
@@ -135,8 +135,8 @@ def _clear_custom_headers():
     _remove_headers = []
 
 @pytest.fixture(autouse=True)
-def clear_custom_headers(setup_teardown):
-    _add_custom_headers(headers=dict(Host=targets.main.default.connection.host)) # TODO: delete when MalformedXML will be fixed
+def clear_custom_headers(setup_teardown, hook_headers):
+    _add_custom_headers(headers=dict(Host=targets.main.default.connection.host)) # TODO: delete when Host will be parsed correct
     yield
     _clear_custom_headers() # clear headers before teardown()
 
@@ -552,7 +552,6 @@ def test_object_create_bad_amz_date_before_epoch_aws4():
     key = _setup_bad_object({'X-Amz-Date': '19500707T215304Z'})
 
     e = assert_raises(boto.exception.S3ResponseError, key.set_contents_from_string, 'bar')
-    print("ERROR1:", e)
     assert e.status == 403
     assert e.reason == 'Forbidden'
     assert e.error_code in ('AccessDenied', 'SignatureDoesNotMatch')
