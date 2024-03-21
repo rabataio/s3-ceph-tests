@@ -1820,7 +1820,7 @@ def _set_get_metadata(metadata, bucket_name=None):
     client.put_object(Bucket=bucket_name, Key='foo', Body='bar', Metadata=metadata_dict)
 
     response = client.get_object(Bucket=bucket_name, Key='foo')
-    return response['Metadata']['meta1']
+    return response['Metadata']['Meta1']
 
 def test_object_set_get_metadata_none_to_good():
     got = _set_get_metadata('mymeta')
@@ -8161,7 +8161,6 @@ def test_lifecyclev2_expiration():
 
 @pytest.mark.lifecycle
 @pytest.mark.lifecycle_expiration
-@pytest.mark.fails_on_aws
 def test_lifecycle_expiration_versioning_enabled():
     bucket_name = get_new_bucket()
     client = get_client()

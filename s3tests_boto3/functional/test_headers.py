@@ -41,8 +41,13 @@ def _add_header_create_bad_object(headers, client=None):
     key_name = 'foo'
 
     # pass in custom headers before PutObject call
-    add_headers = (lambda **kwargs: kwargs['params']['headers'].update(headers))
-    client.meta.events.register('before-call.s3.PutObject', add_headers)
+    if 'Content-MD5' in headers:
+        add_headers = (lambda **kwargs: kwargs['params']['headers'].update(headers))
+        client.meta.events.register('before-call.s3.PutObject', add_headers)
+    else:
+        add_headers = (lambda **kwargs: kwargs['request'].headers.update(headers))
+        client.meta.events.register('before-send.s3.PutObject', add_headers)
+
     e = assert_raises(ClientError, client.put_object, Bucket=bucket_name, Key=key_name, Body='bar')
 
     return e
@@ -76,10 +81,10 @@ def _remove_header_create_bad_object(remove, client=None):
 
     # remove custom headers before PutObject call
     def remove_header(**kwargs):
-        if (remove in kwargs['params']['headers']):
-            del kwargs['params']['headers'][remove]
+        if remove in kwargs['request'].headers:
+            del kwargs['request'].headers[remove]
 
-    client.meta.events.register('before-call.s3.PutObject', remove_header)
+    client.meta.events.register('before-send.s3.PutObject', remove_header)
     e = assert_raises(ClientError, client.put_object, Bucket=bucket_name, Key=key_name, Body='bar')
 
     return e
@@ -107,9 +112,9 @@ def _add_header_create_bad_bucket(headers=None, client=None):
     if client == None:
         client = get_client()
 
-    # pass in custom headers before PutObject call
-    add_headers = (lambda **kwargs: kwargs['params']['headers'].update(headers))
-    client.meta.events.register('before-call.s3.CreateBucket', add_headers)
+    add_headers = (lambda **kwargs: kwargs['request'].headers.update(headers))
+    client.meta.events.register('before-send.s3.CreateBucket', add_headers)
+
     e = assert_raises(ClientError, client.create_bucket, Bucket=bucket_name)
 
     return e
@@ -124,10 +129,10 @@ def _remove_header_create_bucket(remove, client=None):
 
     # remove custom headers before PutObject call
     def remove_header(**kwargs):
-        if (remove in kwargs['params']['headers']):
-            del kwargs['params']['headers'][remove]
+        if remove in kwargs['request'].headers:
+            del kwargs['request'].headers[remove]
 
-    client.meta.events.register('before-call.s3.CreateBucket', remove_header)
+    client.meta.events.register('before-send.s3.CreateBucket', remove_header)
     client.create_bucket(Bucket=bucket_name)
 
     return bucket_name
@@ -141,10 +146,10 @@ def _remove_header_create_bad_bucket(remove, client=None):
 
     # remove custom headers before PutObject call
     def remove_header(**kwargs):
-        if (remove in kwargs['params']['headers']):
-            del kwargs['params']['headers'][remove]
+        if remove in kwargs['request'].headers:
+            del kwargs['request'].headers[remove]
 
-    client.meta.events.register('before-call.s3.CreateBucket', remove_header)
+    client.meta.events.register('before-send.s3.CreateBucket', remove_header)
     e = assert_raises(ClientError, client.create_bucket, Bucket=bucket_name)
 
     return e
