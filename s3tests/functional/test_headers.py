@@ -81,7 +81,8 @@ def _our_authorize(self, connection, **kwargs):
     _orig_authorize(self, connection, **kwargs)
     _update_headers(self.headers)
 
-@pytest.fixture()
+
+@pytest.fixture
 def hook_headers(setup_teardown):
     boto_type = None
     _orig_conn = {}
@@ -136,7 +137,6 @@ def _clear_custom_headers():
 
 @pytest.fixture(autouse=True)
 def clear_custom_headers(setup_teardown, hook_headers):
-    _add_custom_headers(headers=dict(Host=targets.main.default.connection.host)) # TODO: delete when Host will be parsed correct
     yield
     _clear_custom_headers() # clear headers before teardown()
 
