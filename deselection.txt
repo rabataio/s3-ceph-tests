@@ -519,8 +519,6 @@ s3tests_boto3/functional/test_s3.py::test_object_copy_versioning_multipart_uploa
 s3tests_boto3/functional/test_s3.py::test_multipart_upload_small
 s3tests_boto3/functional/test_s3.py::test_multipart_upload
 
-# Failed - StreamingError: IncompleteRead(983040 bytes read, 16960 more expected)
-s3tests_boto3/functional/test_s3.py::test_multipart_upload_resend_part
 # Failed - missing AbortMultipartUpload error code NoSuchUpload
 s3tests_boto3/functional/test_s3.py::test_abort_multipart_upload_not_found
 # NotImplemented - PutBucketAcl
