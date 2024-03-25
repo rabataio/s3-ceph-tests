@@ -1821,7 +1821,7 @@ def _set_get_metadata(metadata, bucket_name=None):
     client.put_object(Bucket=bucket_name, Key='foo', Body='bar', Metadata=metadata_dict)
 
     response = client.get_object(Bucket=bucket_name, Key='foo')
-    return response['Metadata']['Meta1']
+    return response['Metadata']['meta1']
 
 def test_object_set_get_metadata_none_to_good():
     got = _set_get_metadata('mymeta')
