@@ -15,7 +15,8 @@ on:
         required: true
 
 jobs:
-  s3_tests:
+  e2e_tests:
+    name: e2e Tests
     environment: ${{ inputs.environment || 'RCS stage' }}
     runs-on: ubuntu-20.04
     steps:
