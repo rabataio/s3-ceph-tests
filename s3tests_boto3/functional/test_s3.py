@@ -1,3 +1,5 @@
+import codecs
+
 import boto3
 import botocore.session
 from botocore.exceptions import ClientError
@@ -6399,15 +6401,23 @@ def test_multipart_get_part():
     client.complete_multipart_upload(Bucket=bucket_name, Key=key, UploadId=upload_id, MultipartUpload={'Parts': parts})
     assert len(parts) == part_count
 
+    content_md5 = hashlib.md5()
+    for part in parts:
+        content_md5.update(codecs.decode(part['ETag'], 'hex'))
+    expected_etag = '"{}-{}"'.format(content_md5.hexdigest(), part_count)
+
     for part, size in zip(parts, part_sizes):
         response = client.head_object(Bucket=bucket_name, Key=key, PartNumber=part['PartNumber'])
         assert response['PartsCount'] == part_count
-        assert response['ETag'] == '"{}"'.format(part['ETag'])
+        assert response['ETag'] == expected_etag
+        assert response['ResponseMetadata']['HTTPStatusCode'] == 206
 
         response = client.get_object(Bucket=bucket_name, Key=key, PartNumber=part['PartNumber'])
         assert response['PartsCount'] == part_count
-        assert response['ETag'] == '"{}"'.format(part['ETag'])
+        assert response['ETag'] == expected_etag
         assert response['ContentLength'] == size
+        assert response['ResponseMetadata']['HTTPStatusCode'] == 206
+
         # compare contents
         for chunk in response['Body'].iter_chunks():
             assert chunk.decode() == data[0:len(chunk)]
@@ -6416,8 +6426,8 @@ def test_multipart_get_part():
     # request PartNumber out of range
     e = assert_raises(ClientError, client.get_object, Bucket=bucket_name, Key=key, PartNumber=5)
     status, error_code = _get_status_and_error_code(e.response)
-    assert status == 400
-    assert error_code == 'InvalidPart'
+    assert status == 416
+    assert error_code == 'InvalidPartNumber'
 
 @pytest.mark.fails_on_dbstore
 def test_non_multipart_get_part():
