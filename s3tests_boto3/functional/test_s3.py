@@ -12634,14 +12634,13 @@ def test_copy_object_ifnonematch_failed():
 
 # TODO: results in a 404 instead of 400 on the RGW
 @pytest.mark.fails_on_rgw
-@pytest.mark.fails_on_aws
 def test_object_read_unreadable():
     bucket_name = get_new_bucket()
     client = get_client()
-    e = assert_raises(ClientError, client.get_object, Bucket=bucket_name, Key='\xae\x8a-')
+    e = assert_raises(ClientError, client.get_object, Bucket=bucket_name, Key='\x00')
     status, error_code = _get_status_and_error_code(e.response)
     assert status == 400
-    assert e.response['Error']['Message'] == 'Couldn\'t parse the specified URI.'
+    assert e.response['Error']['Message'] == 'Bad Request'
 
 def test_get_bucket_policy_status():
     bucket_name = get_new_bucket()
