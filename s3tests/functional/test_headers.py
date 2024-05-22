@@ -554,7 +554,8 @@ def test_object_create_bad_amz_date_before_epoch_aws4():
     e = assert_raises(boto.exception.S3ResponseError, key.set_contents_from_string, 'bar')
     assert e.status == 403
     assert e.reason == 'Forbidden'
-    assert e.error_code in ('AccessDenied', 'SignatureDoesNotMatch')
+    assert e.error_code == 'AccessDenied'
+    assert e.message == 'AWS authentication requires a valid Date or x-amz-date header'
 
 
 @pytest.mark.auth_aws4
@@ -761,7 +762,8 @@ def test_bucket_create_bad_amz_date_before_epoch_aws4():
     check_aws4_support()
     _add_custom_headers({'X-Amz-Date': '19500707T215304Z'})
     e = assert_raises(boto.exception.S3ResponseError, get_new_bucket)
-
     assert e.status == 403
     assert e.reason == 'Forbidden'
-    assert e.error_code in ('AccessDenied', 'SignatureDoesNotMatch')
+    assert e.error_code == 'AccessDenied'
+    assert e.message == 'AWS authentication requires a valid Date or x-amz-date header'
+
