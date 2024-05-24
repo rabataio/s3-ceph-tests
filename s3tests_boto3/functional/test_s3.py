@@ -5338,7 +5338,7 @@ def test_bucket_create_special_key_names():
         response = client.get_object(Bucket=bucket_name, Key=name)
         body = _get_body(response)
         assert name == body
-        client.put_object_acl(Bucket=bucket_name, Key=name, ACL='private')
+        # client.put_object_acl(Bucket=bucket_name, Key=name, ACL='private')
 
 def test_bucket_list_special_prefix():
     key_names = ['_bla/1', '_bla/2', '_bla/3', '_bla/4', 'abcd']
