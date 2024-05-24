@@ -101,20 +101,25 @@ def nuke_bucket(client, bucket):
 
     # list and delete objects in batches
 
-    for object in get_objects_list(bucket, client):
-        delete = client.delete_object(Bucket=bucket, Key=object)
-        # check for object locks on 403 AccessDenied errors
-        for err in delete.get('Errors', []):
-            if err.get('Code') != 'AccessDenied':
-                continue
-            try:
-                res = client.get_object_retention(Bucket=bucket,
-                        Key=err['Key'], VersionId=err['VersionId'])
-                retain_date = res['Retention']['RetainUntilDate']
-                if not max_retain_date or max_retain_date < retain_date:
-                    max_retain_date = retain_date
-            except ClientError:
-                pass
+    while True:
+        objects = get_objects_list(bucket, client)
+        if not objects:
+            break
+
+        for object in objects:
+            delete = client.delete_object(Bucket=bucket, Key=object)
+            # check for object locks on 403 AccessDenied errors
+            for err in delete.get('Errors', []):
+                if err.get('Code') != 'AccessDenied':
+                    continue
+                try:
+                    res = client.get_object_retention(Bucket=bucket,
+                            Key=err['Key'], VersionId=err['VersionId'])
+                    retain_date = res['Retention']['RetainUntilDate']
+                    if not max_retain_date or max_retain_date < retain_date:
+                        max_retain_date = retain_date
+                except ClientError:
+                    pass
 
     if max_retain_date:
         # wait out the retention period (up to 60 seconds)

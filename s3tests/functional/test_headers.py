@@ -412,8 +412,9 @@ def test_object_create_bad_authorization_incorrect_aws4():
 
     e = assert_raises(boto.exception.S3ResponseError, key.set_contents_from_string, 'bar')
     assert e.status == 400
-    assert e.reason == 'Forbidden'
-    assert e.error_code in ('AccessDenied', 'SignatureDoesNotMatch', 'InvalidAccessKeyId')
+    assert e.reason == 'Bad Request'
+    assert e.error_code == 'AuthorizationHeaderMalformed'
+    assert e.message == 'The authorization header is malformed; Invalid credential date. Date is not the same as X-Amz-Date.'
 
 
 @pytest.mark.auth_aws4

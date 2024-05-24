@@ -155,17 +155,6 @@ s3tests_boto3/functional/test_s3select.py::test_bool_cast_expressions
 s3tests_boto3/functional/test_s3select.py::test_progress_expressions
 s3tests_boto3/functional/test_s3select.py::test_output_serial_expressions
 
-# Failed - wrong ListObjects is_truncated
-s3tests_boto3/functional/test_s3.py::test_bucket_list_delimiter_prefix
-# Failed - wrong ListObjectsV2 is_truncated
-s3tests_boto3/functional/test_s3.py::test_bucket_listv2_delimiter_prefix
-# Failed - wrong ListObjects is_truncated
-s3tests_boto3/functional/test_s3.py::test_bucket_list_delimiter_prefix_underscore
-# Failed - wrong ListObjectsV2 is_truncated
-s3tests_boto3/functional/test_s3.py::test_bucket_listv2_delimiter_prefix_underscore
-# Failed - got DeleteBucket error code BucketNotEmpty
-s3tests_boto3/functional/test_s3.py::test_bucket_list_delimiter_not_skip_special
-
 # Skipped - fails_on_aws
 s3tests_boto3/functional/test_s3.py::test_account_usage
 s3tests_boto3/functional/test_s3.py::test_head_bucket_usage
