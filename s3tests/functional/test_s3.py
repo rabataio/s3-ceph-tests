@@ -1,4 +1,5 @@
 from io import StringIO
+from unittest import mock
 import boto.exception
 import boto.s3.connection
 import boto.s3.acl
@@ -93,7 +94,9 @@ def _get_alt_connection():
 
 # Breaks DNS with SubdomainCallingFormat
 @pytest.mark.fails_with_subdomain
-def test_bucket_create_naming_bad_punctuation():
+def test_bucket_create_naming_bad_punctuation(mocker):
+    mocker.patch.object(targets.main.default.connection, 'calling_format', new_callable=boto.s3.connection.OrdinaryCallingFormat)
+
     # characters other than [a-zA-Z0-9._-]
     check_bad_bucket_name('alpha!soup')
 

@@ -1,3 +1,4 @@
+import datetime
 from io import StringIO
 import boto.connection
 import boto.exception
@@ -207,15 +208,23 @@ def test_object_create_bad_authorization_empty():
 
 @pytest.mark.auth_common
 @pytest.mark.fails_on_dbstore
-def test_object_create_date_and_amz_date():
-    date = formatdate(usegmt=True)
+def test_object_create_date_and_amz_date(freezer):
+    now = datetime.datetime.utcnow()
+    date = now.strftime('%Y%m%dT%H%M%SZ')
+    # boto library set X-Amz-Date header directly in auth for in `HmacAuthV4Handler.add_auth`, so we need to mock time
+    # to get same result header
+    freezer.move_to(date)
     key = _setup_bad_object({'Date': date, 'X-Amz-Date': date})
     key.set_contents_from_string('bar')
 
 @pytest.mark.auth_common
 @pytest.mark.fails_on_dbstore
-def test_object_create_amz_date_and_no_date():
-    date = formatdate(usegmt=True)
+def test_object_create_amz_date_and_no_date(freezer):
+    now = datetime.datetime.utcnow()
+    date = now.strftime('%Y%m%dT%H%M%SZ')
+    # boto library set X-Amz-Date header directly in auth for in `HmacAuthV4Handler.add_auth`, so we need to mock time
+    # to get same result header
+    freezer.move_to(date)
     key = _setup_bad_object({'X-Amz-Date': date}, ('Date',))
     key.set_contents_from_string('bar')
 

@@ -1,9 +1,5 @@
 # Skipped - no RequestTimeout
 s3tests/functional/test_headers.py::test_object_create_bad_contentlength_mismatch_above
-# Skipped - x-amz-date issue in test
-s3tests/functional/test_headers.py::test_object_create_date_and_amz_date
-# Skipped - x-amz-date issue in test
-s3tests/functional/test_headers.py::test_object_create_amz_date_and_no_date
 s3tests/functional/test_s3.py::test_atomic_dual_conditional_write_1mb
 
 # Failed - missing BadDigest
@@ -12,9 +8,6 @@ s3tests_boto3/functional/test_headers.py::test_object_create_bad_md5_bad
 s3tests_boto3/functional/test_headers.py::test_object_create_bad_md5_empty
 # Failed - Nginx issue
 s3tests_boto3/functional/test_headers.py::test_object_create_bad_contentlength_none
-
-# Failed - got CreateBucket error code BucketAlreadyOwnedByYou
-s3tests_boto3/functional/test_s3.py::test_bucket_recreate_not_overriding
 
 # Failed - got CompleteMultipartUpload error code NoSuchUpload
 s3tests_boto3/functional/test_s3.py::test_multipart_upload_small

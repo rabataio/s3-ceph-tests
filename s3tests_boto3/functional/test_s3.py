@@ -5304,6 +5304,7 @@ def test_bucket_recreate_not_overriding():
     assert key_names == objs_list
 
     client = get_client()
+    # NOTE: works only with default region
     client.create_bucket(Bucket=bucket_name)
 
     objs_list = get_objects_list(bucket_name)
