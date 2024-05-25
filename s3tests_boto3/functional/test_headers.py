@@ -63,11 +63,15 @@ def _remove_header_create_object(remove, client=None):
     key_name = 'foo'
 
     # remove custom headers before PutObject call
-    def remove_header(**kwargs):
-        if (remove in kwargs['params']['headers']):
-            del kwargs['params']['headers'][remove]
+    def remove_header_before_call(model, params, request_signer, **kwargs):
+        params['headers'].pop(remove, None)
 
-    client.meta.events.register('before-call.s3.PutObject', remove_header)
+    # remove custom headers before PutObject send
+    def remove_header_before_send(request, **kwargs):
+        request.headers.pop(remove, None)
+
+    client.meta.events.register('before-call.s3.PutObject', remove_header_before_call)
+    client.meta.events.register('before-send.s3.PutObject', remove_header_before_send)
     client.put_object(Bucket=bucket_name, Key=key_name)
 
     return bucket_name, key_name
@@ -182,9 +186,7 @@ def test_object_create_bad_md5_empty():
 
 @pytest.mark.auth_common
 def test_object_create_bad_md5_none():
-    bucket_name, key_name = _remove_header_create_object('Content-MD5')
-    client = get_client()
-    client.put_object(Bucket=bucket_name, Key=key_name, Body='bar')
+    _remove_header_create_object('Content-MD5')
 
 @pytest.mark.auth_common
 def test_object_create_bad_expect_mismatch():
@@ -200,9 +202,7 @@ def test_object_create_bad_expect_empty():
 
 @pytest.mark.auth_common
 def test_object_create_bad_expect_none():
-    bucket_name, key_name = _remove_header_create_object('Expect')
-    client = get_client()
-    client.put_object(Bucket=bucket_name, Key=key_name, Body='bar')
+    _remove_header_create_object('Expect')
 
 @pytest.mark.auth_common
 # TODO: remove 'fails_on_rgw' and once we have learned how to remove the content-length header

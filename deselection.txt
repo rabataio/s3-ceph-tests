@@ -1,20 +1,13 @@
 # Skipped - no RequestTimeout
 s3tests/functional/test_headers.py::test_object_create_bad_contentlength_mismatch_above
-s3tests/functional/test_s3.py::test_atomic_dual_conditional_write_1mb
 
-# Failed - missing BadDigest
-s3tests_boto3/functional/test_headers.py::test_object_create_bad_md5_bad
-# Failed - missing InvalidDigest
-s3tests_boto3/functional/test_headers.py::test_object_create_bad_md5_empty
 # Failed - Nginx issue
 s3tests_boto3/functional/test_headers.py::test_object_create_bad_contentlength_none
 
-# Failed - got CompleteMultipartUpload error code NoSuchUpload
+# Failed - RCS return NoSuchUpload for the repeated CompleteMultipartUpload requests
 s3tests_boto3/functional/test_s3.py::test_multipart_upload_small
 s3tests_boto3/functional/test_s3.py::test_multipart_upload
 
-# Failed - missing AbortMultipartUpload error code NoSuchUpload
-s3tests_boto3/functional/test_s3.py::test_abort_multipart_upload_not_found
 # Failed - wrong status code 100
 s3tests_boto3/functional/test_s3.py::test_100_continue
 
@@ -24,6 +17,7 @@ s3tests_boto3/functional/test_s3.py::test_bucket_create_naming_dns_dot_dash
 s3tests_boto3/functional/test_s3.py::test_bucket_create_naming_dns_dash_dot
 
 # Skipped - fails_on_aws
+s3tests/functional/test_s3.py::test_atomic_dual_conditional_write_1mb
 s3tests_boto3/functional/test_s3.py::test_atomic_conditional_write_1mb
 s3tests_boto3/functional/test_s3.py::test_atomic_dual_conditional_write_1mb
 s3tests_boto3/functional/test_s3.py::test_atomic_write_bucket_gone
@@ -32,12 +26,9 @@ s3tests_boto3/functional/test_s3.py::test_multipart_resend_first_finishes_last
 # Failed - unicode metadata convert issue
 s3tests_boto3/functional/test_s3.py::test_object_set_get_unicode_metadata
 
-# Skipped - fails_on_aws
+# NotImplemented - Put Object conditions
 s3tests_boto3/functional/test_s3.py::test_put_object_ifmatch_good
-# Failed - missing PutObject error code PreconditionFailed
 s3tests_boto3/functional/test_s3.py::test_put_object_ifmatch_failed
-
-# Skipped - fails_on_aws
 s3tests_boto3/functional/test_s3.py::test_put_object_ifmatch_overwrite_existed_good
 s3tests_boto3/functional/test_s3.py::test_put_object_ifmatch_nonexisted_failed
 s3tests_boto3/functional/test_s3.py::test_put_object_ifnonmatch_good
@@ -138,6 +129,10 @@ s3tests_boto3/functional/test_s3.py::test_object_copy_versioned_bucket
 s3tests_boto3/functional/test_s3.py::test_object_copy_versioned_url_encoding
 s3tests_boto3/functional/test_s3.py::test_object_copy_versioning_multipart_upload
 s3tests_boto3/functional/test_s3.py::test_object_copy_not_owned_object_bucket
+s3tests_boto3/functional/test_s3.py::test_copy_object_ifmatch_good
+s3tests_boto3/functional/test_s3.py::test_copy_object_ifmatch_failed
+s3tests_boto3/functional/test_s3.py::test_copy_object_ifnonematch_good
+s3tests_boto3/functional/test_s3.py::test_copy_object_ifnonematch_failed
 
 # NotImplemented - UploadPartCopy
 s3tests_boto3/functional/test_s3.py::test_multipart_copy_small
@@ -258,12 +253,6 @@ s3tests_boto3/functional/test_s3.py::test_object_lock_uploading_obj
 s3tests_boto3/functional/test_s3.py::test_object_lock_changing_mode_from_governance_with_bypass
 s3tests_boto3/functional/test_s3.py::test_object_lock_changing_mode_from_governance_without_bypass
 s3tests_boto3/functional/test_s3.py::test_object_lock_changing_mode_from_compliance
-
-# NotImplemented - CopyObject
-s3tests_boto3/functional/test_s3.py::test_copy_object_ifmatch_good
-s3tests_boto3/functional/test_s3.py::test_copy_object_ifmatch_failed
-s3tests_boto3/functional/test_s3.py::test_copy_object_ifnonematch_good
-s3tests_boto3/functional/test_s3.py::test_copy_object_ifnonematch_failed
 
 # NotImplemented - GetBucketPolicyStatus
 s3tests_boto3/functional/test_s3.py::test_get_public_acl_bucket_policy_status
