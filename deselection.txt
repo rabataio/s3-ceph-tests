@@ -1,42 +1,12 @@
-# Skipped - no RequestTimeout
+# Skipped - no RequestTimeout with Nginx
 s3tests/functional/test_headers.py::test_object_create_bad_contentlength_mismatch_above
-
-# Failed - Nginx issue
-s3tests_boto3/functional/test_headers.py::test_object_create_bad_contentlength_none
 
 # Failed - RCS return NoSuchUpload for the repeated CompleteMultipartUpload requests
 s3tests_boto3/functional/test_s3.py::test_multipart_upload_small
 s3tests_boto3/functional/test_s3.py::test_multipart_upload
 
-# Failed - wrong status code 100
-s3tests_boto3/functional/test_s3.py::test_100_continue
-
-# Failed - missing CreateBucket error code InvalidBucketName
-s3tests_boto3/functional/test_s3.py::test_bucket_create_naming_dns_dot_dot
-s3tests_boto3/functional/test_s3.py::test_bucket_create_naming_dns_dot_dash
-s3tests_boto3/functional/test_s3.py::test_bucket_create_naming_dns_dash_dot
-
-# Skipped - fails_on_aws
-s3tests/functional/test_s3.py::test_atomic_dual_conditional_write_1mb
-s3tests_boto3/functional/test_s3.py::test_atomic_conditional_write_1mb
-s3tests_boto3/functional/test_s3.py::test_atomic_dual_conditional_write_1mb
-s3tests_boto3/functional/test_s3.py::test_atomic_write_bucket_gone
-s3tests_boto3/functional/test_s3.py::test_multipart_resend_first_finishes_last
-
 # Failed - unicode metadata convert issue
 s3tests_boto3/functional/test_s3.py::test_object_set_get_unicode_metadata
-
-# NotImplemented - Put Object conditions
-s3tests_boto3/functional/test_s3.py::test_put_object_ifmatch_good
-s3tests_boto3/functional/test_s3.py::test_put_object_ifmatch_failed
-s3tests_boto3/functional/test_s3.py::test_put_object_ifmatch_overwrite_existed_good
-s3tests_boto3/functional/test_s3.py::test_put_object_ifmatch_nonexisted_failed
-s3tests_boto3/functional/test_s3.py::test_put_object_ifnonmatch_good
-s3tests_boto3/functional/test_s3.py::test_put_object_ifnonmatch_failed
-s3tests_boto3/functional/test_s3.py::test_put_object_ifnonmatch_nonexisted_good
-s3tests_boto3/functional/test_s3.py::test_put_object_ifnonmatch_overwrite_existed_failed
-
-=======================================================================================================================
 
 # NotImplemented - Bucket ACL
 s3tests_boto3/functional/test_s3.py::test_object_anon_put_write_access
@@ -546,6 +516,19 @@ s3tests_boto3/functional/test_s3select.py::test_case_value_expressions
 s3tests_boto3/functional/test_s3select.py::test_bool_cast_expressions
 s3tests_boto3/functional/test_s3select.py::test_progress_expressions
 s3tests_boto3/functional/test_s3select.py::test_output_serial_expressions
+
+# Skipped - Nginx always send 100-continue
+s3tests_boto3/functional/test_s3.py::test_100_continue
+
+# Skipped - AWS doesn't support If-Match/If-None-Match conditions for PutObject and UploadPart
+s3tests_boto3/functional/test_s3.py::test_put_object_ifmatch_good
+s3tests_boto3/functional/test_s3.py::test_put_object_ifmatch_failed
+s3tests_boto3/functional/test_s3.py::test_put_object_ifmatch_overwrite_existed_good
+s3tests_boto3/functional/test_s3.py::test_put_object_ifmatch_nonexisted_failed
+s3tests_boto3/functional/test_s3.py::test_put_object_ifnonmatch_good
+s3tests_boto3/functional/test_s3.py::test_put_object_ifnonmatch_failed
+s3tests_boto3/functional/test_s3.py::test_put_object_ifnonmatch_nonexisted_good
+s3tests_boto3/functional/test_s3.py::test_put_object_ifnonmatch_overwrite_existed_failed
 
 # Skipped - UnsupportedAuthorizationType
 s3tests/functional/test_headers.py::test_object_create_bad_contentlength_mismatch_below_aws2

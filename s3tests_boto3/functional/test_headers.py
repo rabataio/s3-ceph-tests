@@ -1,4 +1,3 @@
-import boto3
 import pytest
 from botocore.exceptions import ClientError
 from email.utils import formatdate
@@ -225,9 +224,22 @@ def test_object_create_bad_contentlength_negative():
 @pytest.mark.auth_common
 # TODO: remove 'fails_on_rgw' and once we have learned how to remove the content-length header
 @pytest.mark.fails_on_rgw
-def test_object_create_bad_contentlength_none():
-    remove = 'Content-Length'
-    e = _remove_header_create_bad_object('Content-Length')
+def test_object_create_bad_contentlength_none(mocker):
+    # NOTE: Urllib set Transfer-Encoding header if Content-Length header not set, prevent such behaviour.
+    from urllib3.util import SKIPPABLE_HEADERS, SKIP_HEADER
+    new_skippable_headers = {*SKIPPABLE_HEADERS, 'content-length'}
+    mocker.patch('urllib3.connection.SKIPPABLE_HEADERS', new_skippable_headers)
+
+    bucket_name = get_new_bucket()
+    client = get_client()
+
+    # remove custom headers before PutObject call
+    def remove_header(request, **kwargs):
+        request.headers['Content-Length'] = SKIP_HEADER
+
+    client.meta.events.register('before-send.s3.PutObject', remove_header)
+    e = assert_raises(ClientError, client.put_object, Bucket=bucket_name, Key='foo', Body='bar')
+
     status, error_code = _get_status_and_error_code(e.response)
     assert status == 411
     assert error_code == 'MissingContentLength'
