@@ -1582,9 +1582,11 @@ def test_object_write_with_chunked_transfer_encoding():
     client = get_client()
 
     client.meta.events.register_first('before-sign.*.*', _ev_add_te_header)
-    response = client.put_object(Bucket=bucket_name, Key='foo', Body='bar')
+    e = assert_raises(ClientError, client.put_object, Bucket=bucket_name, Key='foo', Body='bar')
 
-    assert response['ResponseMetadata']['HTTPStatusCode'] == 200
+    status, error_code = _get_status_and_error_code(e.response)
+    assert status == 501
+    assert error_code == 'NotImplemented'
 
 
 def test_bucket_create_delete():
