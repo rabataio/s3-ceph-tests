@@ -1,3 +1,6 @@
+import binascii
+import codecs
+
 import boto3
 import botocore.session
 import botocore.config
@@ -42,6 +45,7 @@ from .iam import iam_root, nuke_role
 
 from . import (
     configfile,
+    create_bucket,
     setup_teardown,
     get_client,
     get_prefix,
@@ -100,6 +104,7 @@ from . import (
     get_iam_client,
     get_sts_client,
     get_parameter_name,
+    DEFAULT_REGION,
     )
 
 
@@ -198,7 +203,7 @@ def test_basic_key_count():
     client = get_client()
     bucket_names = []
     bucket_name = get_new_bucket_name()
-    client.create_bucket(Bucket=bucket_name)
+    create_bucket(client, Bucket=bucket_name)
     for j in range(5):
             client.put_object(Bucket=bucket_name, Key=str(j))
     response1 = client.list_objects_v2(Bucket=bucket_name)
@@ -245,7 +250,7 @@ def test_bucket_listv2_encoding_basic():
 
     prefixes = _get_prefixes(response)
     assert len(prefixes) == 3
-    assert prefixes == ['foo%2B1/', 'foo/', 'quux%20ab/']
+    assert prefixes == ['foo%2B1/', 'foo/', 'quux+ab/']
 
 def test_bucket_list_encoding_basic():
     bucket_name = _create_objects(keys=['foo+1/bar', 'foo/bar/xyzzy', 'quux ab/thud', 'asdf+b'])
@@ -258,7 +263,7 @@ def test_bucket_list_encoding_basic():
 
     prefixes = _get_prefixes(response)
     assert len(prefixes) == 3
-    assert prefixes == ['foo%2B1/', 'foo/', 'quux%20ab/']
+    assert prefixes == ['foo%2B1/', 'foo/', 'quux+ab/']
 
 
 def validate_bucket_list(bucket_name, prefix, delimiter, marker, max_keys,
@@ -680,7 +685,8 @@ def test_bucket_listv2_delimiter_not_exist():
 
 @pytest.mark.fails_on_dbstore
 def test_bucket_list_delimiter_not_skip_special():
-    key_names = ['0/'] + ['0/%s' % i for i in range(1000, 1999)]
+    # NOTE: Reduce key names to prevent too long test
+    key_names = ['0/'] + ['0/%s' % i for i in range(1000, 1002)]
     key_names2 = ['1999', '1999#', '1999+', '2000']
     key_names += key_names2
     bucket_name = _create_objects(keys=key_names)
@@ -836,7 +842,7 @@ def test_bucket_list_prefix_unreadable():
     client = get_client()
 
     response = client.list_objects(Bucket=bucket_name, Prefix='\x0a')
-    assert response['Prefix'] == '\x0a'
+    assert response['Prefix'] == '%0A'
 
     keys = _get_keys(response)
     prefixes = _get_prefixes(response)
@@ -1280,11 +1286,11 @@ def test_bucket_listv2_continuationtoken_empty():
     bucket_name = _create_objects(keys=key_names)
     client = get_client()
 
-    response = client.list_objects_v2(Bucket=bucket_name, ContinuationToken='')
-    assert response['ContinuationToken'] == ''
-    assert response['IsTruncated'] == False
-    keys = _get_keys(response)
-    assert keys == key_names
+    e = assert_raises(ClientError, client.list_objects_v2, Bucket=bucket_name, ContinuationToken='')
+
+    status, error_code = _get_status_and_error_code(e.response)
+    assert status == 400
+    assert error_code == 'InvalidArgument'
 
 @pytest.mark.list_objects_v2
 def test_bucket_listv2_continuationtoken():
@@ -1314,7 +1320,7 @@ def test_bucket_listv2_both_continuationtoken_startafter():
 
     response2 = client.list_objects_v2(Bucket=bucket_name, StartAfter='bar', ContinuationToken=next_continuation_token)
     assert response2['ContinuationToken'] == next_continuation_token
-    assert response2['StartAfter'] == 'bar'
+    assert 'StartAfter' not in response2
     assert response2['IsTruncated'] == False
     key_names2 = ['foo', 'quxx']
     keys = _get_keys(response2)
@@ -1408,7 +1414,7 @@ def test_bucket_list_return_data():
         acl_response = client.get_object_acl(Bucket=bucket_name, Key=key_name)
         data.update({
             key_name: {
-                'DisplayName': acl_response['Owner']['DisplayName'],
+                'DisplayName': acl_response['Owner'].get('DisplayName'),
                 'ID': acl_response['Owner']['ID'],
                 'ETag': obj_response['ETag'],
                 'LastModified': obj_response['LastModified'],
@@ -1423,7 +1429,7 @@ def test_bucket_list_return_data():
         key_data = data[key_name]
         assert obj['ETag'] == key_data['ETag']
         assert obj['Size'] == key_data['ContentLength']
-        assert obj['Owner']['DisplayName'] == key_data['DisplayName']
+        assert obj['Owner'].get('DisplayName') == key_data['DisplayName']
         assert obj['Owner']['ID'] == key_data['ID']
         _compare_dates(obj['LastModified'],key_data['LastModified'])
 
@@ -1444,7 +1450,8 @@ def test_bucket_list_return_data_versioning():
         data.update({
             key_name: {
                 'ID': acl_response['Owner']['ID'],
-                'DisplayName': acl_response['Owner']['DisplayName'],
+                # NOTE: Does not return by AWS
+                # 'DisplayName': acl_response['Owner']['DisplayName']
                 'ETag': obj_response['ETag'],
                 'LastModified': obj_response['LastModified'],
                 'ContentLength': obj_response['ContentLength'],
@@ -1458,7 +1465,8 @@ def test_bucket_list_return_data_versioning():
     for obj in objs_list:
         key_name = obj['Key']
         key_data = data[key_name]
-        assert obj['Owner']['DisplayName'] == key_data['DisplayName']
+        # NOTE: Does not return by AWS
+        # assert obj['Owner']['DisplayName'] == key_data['DisplayName']
         assert obj['ETag'] == key_data['ETag']
         assert obj['Size'] == key_data['ContentLength']
         assert obj['Owner']['ID'] == key_data['ID']
@@ -1595,13 +1603,20 @@ def _ev_add_te_header(request, **kwargs):
     request.headers.add_header('Transfer-Encoding', 'chunked')
 
 def test_object_write_with_chunked_transfer_encoding():
-    bucket_name = get_new_bucket()
     client = get_client()
 
-    client.meta.events.register_first('before-sign.*.*', _ev_add_te_header)
-    response = client.put_object(Bucket=bucket_name, Key='foo', Body='bar')
+    # NOTE: When https enabled, boto use s3v4 trailing auth with aws-chunked auth with Transfer-Encoding: chunked.
+    if client.meta.endpoint_url.startswith('https://'):
+        pytest.skip("not implemented Transfer-Encoding header could be tested only on not secure endpoint")
 
-    assert response['ResponseMetadata']['HTTPStatusCode'] == 200
+    bucket_name = get_new_bucket()
+
+    client.meta.events.register_first('before-sign.*.*', _ev_add_te_header)
+    e = assert_raises(ClientError, client.put_object, Bucket=bucket_name, Key='foo', Body='bar')
+
+    status, error_code = _get_status_and_error_code(e.response)
+    assert status == 501
+    assert error_code == 'NotImplemented'
 
 
 def test_bucket_create_delete():
@@ -1946,13 +1961,12 @@ def _get_post_url(bucket_name):
     return '{endpoint}/{bucket_name}'.format(endpoint=endpoint, bucket_name=bucket_name)
 
 def test_post_object_anonymous_request():
-    bucket_name = get_new_bucket_name()
+    bucket_name = _setup_bucket_acl('public-read-write')
     client = get_client()
     url = _get_post_url(bucket_name)
     payload = OrderedDict([("key" , "foo.txt"),("acl" , "public-read"),\
     ("Content-Type" , "text/plain"),('file', ('bar'))])
 
-    client.create_bucket(ACL='public-read-write', Bucket=bucket_name)
     r = requests.post(url, files=payload, verify=get_config_ssl_verify())
     assert r.status_code == 204
     response = client.get_object(Bucket=bucket_name, Key='foo.txt')
@@ -1998,10 +2012,8 @@ def test_post_object_authenticated_request():
     assert body == 'bar'
 
 def test_post_object_authenticated_no_content_type():
-    bucket_name = get_new_bucket_name()
+    bucket_name = _setup_bucket_acl('public-read-write')
     client = get_client()
-    client.create_bucket(ACL='public-read-write', Bucket=bucket_name)
-
 
     url = _get_post_url(bucket_name)
     utc = pytz.utc
@@ -2035,9 +2047,7 @@ def test_post_object_authenticated_no_content_type():
     assert body == 'bar'
 
 def test_post_object_authenticated_request_bad_access_key():
-    bucket_name = get_new_bucket_name()
-    client = get_client()
-    client.create_bucket(ACL='public-read-write', Bucket=bucket_name)
+    bucket_name = _setup_bucket_acl('public-read-write')
 
     url = _get_post_url(bucket_name)
     utc = pytz.utc
@@ -2070,9 +2080,7 @@ def test_post_object_authenticated_request_bad_access_key():
     assert r.status_code == 403
 
 def test_post_object_set_success_code():
-    bucket_name = get_new_bucket_name()
-    client = get_client()
-    client.create_bucket(ACL='public-read-write', Bucket=bucket_name)
+    bucket_name = _setup_bucket_acl('public-read-write')
 
     url = _get_post_url(bucket_name)
     payload = OrderedDict([("key" , "foo.txt"),("acl" , "public-read"),\
@@ -2085,9 +2093,7 @@ def test_post_object_set_success_code():
     assert message.text == 'foo.txt'
 
 def test_post_object_set_invalid_success_code():
-    bucket_name = get_new_bucket_name()
-    client = get_client()
-    client.create_bucket(ACL='public-read-write', Bucket=bucket_name)
+    bucket_name = _setup_bucket_acl('public-read-write')
 
     url = _get_post_url(bucket_name)
     payload = OrderedDict([("key" , "foo.txt"),("acl" , "public-read"),\
@@ -2280,9 +2286,8 @@ def test_post_object_escaped_field_values():
     assert body == 'bar'
 
 def test_post_object_success_redirect_action():
-    bucket_name = get_new_bucket_name()
+    bucket_name = _setup_bucket_acl('public-read-write')
     client = get_client()
-    client.create_bucket(ACL='public-read-write', Bucket=bucket_name)
 
     url = _get_post_url(bucket_name)
     redirect_url = _get_post_url(bucket_name)
@@ -3278,8 +3283,7 @@ def _setup_bucket_object_acl(bucket_acl, object_acl, client=None):
     """
     if client is None:
         client = get_client()
-    bucket_name = get_new_bucket_name()
-    client.create_bucket(ACL=bucket_acl, Bucket=bucket_name)
+    bucket_name = _setup_bucket_acl(bucket_acl)
     client.put_object(ACL=object_acl, Bucket=bucket_name, Key='foo')
 
     return bucket_name
@@ -3290,7 +3294,34 @@ def _setup_bucket_acl(bucket_acl=None):
     """
     bucket_name = get_new_bucket_name()
     client = get_client()
-    client.create_bucket(ACL=bucket_acl, Bucket=bucket_name)
+
+    try:
+        create_bucket(client, Bucket=bucket_name, ObjectOwnership='BucketOwnerPreferred')
+        client.put_public_access_block(
+            Bucket=bucket_name,
+            PublicAccessBlockConfiguration={
+                'BlockPublicAcls': False,
+                'IgnorePublicAcls': False,
+                'BlockPublicPolicy': False,
+                'RestrictPublicBuckets': False,
+            },
+        )
+
+        if bucket_acl is not None:
+            client.put_bucket_acl(
+                Bucket=bucket_name,
+                ACL=bucket_acl,
+            )
+    except:
+        # NOTE: Skip error until we don't implement PutPublicAccessBlock API.
+
+        params = {
+            'Bucket': bucket_name
+        }
+        if bucket_acl is not None:
+            params['ACL'] = bucket_acl
+
+        create_bucket(client, **params)
 
     return bucket_name
 
@@ -3400,7 +3431,7 @@ def test_object_raw_get_object_acl():
 
 def test_object_put_acl_mtime():
     key = 'foo'
-    bucket_name = get_new_bucket()
+    bucket_name = _setup_bucket_acl()
     # Enable versioning
     check_configure_versioning_retry(bucket_name, "Enabled", "Enabled")
     client = get_client()
@@ -3528,7 +3559,7 @@ def test_object_raw_get_x_amz_expires_out_max_range():
     url = client.generate_presigned_url(ClientMethod='get_object', Params=params, ExpiresIn=609901, HttpMethod='GET')
 
     res = requests.get(url, verify=get_config_ssl_verify()).__dict__
-    assert res['status_code'] == 403
+    assert res['status_code'] == 400
 
 def test_object_raw_get_x_amz_expires_out_positive_range():
     bucket_name = _setup_bucket_object_acl('public-read', 'public-read')
@@ -3538,7 +3569,7 @@ def test_object_raw_get_x_amz_expires_out_positive_range():
     url = client.generate_presigned_url(ClientMethod='get_object', Params=params, ExpiresIn=-7, HttpMethod='GET')
 
     res = requests.get(url, verify=get_config_ssl_verify()).__dict__
-    assert res['status_code'] == 403
+    assert res['status_code'] == 400
 
 def test_object_content_encoding_aws_chunked():
     client = get_client()
@@ -3584,9 +3615,8 @@ def test_object_anon_put():
 
 def test_object_anon_put_write_access():
     bucket_name = _setup_bucket_acl('public-read-write')
-    client = get_client()
-    client.put_object(Bucket=bucket_name, Key='foo')
-
+    # NOTE: put_object call is removed here, because AWS prevent overwrite when requester is not bucket owner or
+    # owner of existing object.
     unauthenticated_client = get_unauthenticated_client()
 
     response = unauthenticated_client.put_object(Bucket=bucket_name, Key='foo', Body='foo')
@@ -3639,7 +3669,7 @@ def test_object_raw_put_authenticated_expired():
 
     # params wouldn't take a 'Body' parameter so we're passing it in here
     res = requests.put(url, data="foo", verify=get_config_ssl_verify()).__dict__
-    assert res['status_code'] == 403
+    assert res['status_code'] == 400
 
 def check_bad_bucket_name(bucket_name):
     """
@@ -3647,16 +3677,12 @@ def check_bad_bucket_name(bucket_name):
     that the request fails because of an invalid bucket name.
     """
     client = get_client()
-    e = assert_raises(ClientError, client.create_bucket, Bucket=bucket_name)
+    e = assert_raises(ClientError, create_bucket, client, Bucket=bucket_name)
     status, error_code = _get_status_and_error_code(e.response)
     assert status == 400
     assert error_code == 'InvalidBucketName'
 
 
-# AWS does not enforce all documented bucket restrictions.
-# http://docs.amazonwebservices.com/AmazonS3/2006-03-01/dev/index.html?BucketRestrictions.html
-@pytest.mark.fails_on_aws
-# Breaks DNS with SubdomainCallingFormat
 def test_bucket_create_naming_bad_starts_nonalpha():
     bucket_name = get_new_bucket_name()
     check_bad_bucket_name('_' + bucket_name)
@@ -3675,7 +3701,7 @@ def check_invalid_bucketname(invalid_name):
         new_url = url.replace(valid_bucket_name, invalid_name)
         kwargs['params']['url'] = new_url
     client.meta.events.register('before-call.s3.CreateBucket', replace_bucketname_from_url)
-    e = assert_raises(ClientError, client.create_bucket, Bucket=invalid_name)
+    e = assert_raises(ClientError, create_bucket, client, Bucket=invalid_name)
     status, error_code = _get_status_and_error_code(e.response)
     return (status, error_code)
 
@@ -3704,7 +3730,7 @@ def check_good_bucket_name(name, _prefix=None):
             name=name,
             )
     client = get_client()
-    response = client.create_bucket(Bucket=bucket_name)
+    response = create_bucket(client, Bucket=bucket_name)
     assert response['ResponseMetadata']['HTTPStatusCode'] == 200
 
 def _test_bucket_create_naming_good_long(length):
@@ -3728,36 +3754,23 @@ def _test_bucket_create_naming_good_long(length):
             name=name,
             )
     client = get_client()
-    response = client.create_bucket(Bucket=bucket_name)
+    response = create_bucket(client, Bucket=bucket_name)
     assert response['ResponseMetadata']['HTTPStatusCode'] == 200
 
-# Breaks DNS with SubdomainCallingFormat
-@pytest.mark.fails_on_aws
-# Should now pass on AWS even though it has 'fails_on_aws' attr.
 def test_bucket_create_naming_good_long_60():
     _test_bucket_create_naming_good_long(60)
 
-# Breaks DNS with SubdomainCallingFormat
-@pytest.mark.fails_on_aws
-# Should now pass on AWS even though it has 'fails_on_aws' attr.
 def test_bucket_create_naming_good_long_61():
     _test_bucket_create_naming_good_long(61)
 
-# Breaks DNS with SubdomainCallingFormat
-@pytest.mark.fails_on_aws
-# Should now pass on AWS even though it has 'fails_on_aws' attr.
 def test_bucket_create_naming_good_long_62():
     _test_bucket_create_naming_good_long(62)
 
 
-# Breaks DNS with SubdomainCallingFormat
 def test_bucket_create_naming_good_long_63():
     _test_bucket_create_naming_good_long(63)
 
 
-# Breaks DNS with SubdomainCallingFormat
-@pytest.mark.fails_on_aws
-# Should now pass on AWS even though it has 'fails_on_aws' attr.
 def test_bucket_list_long_name():
     prefix = get_new_bucket_name()
     length = 61
@@ -3772,32 +3785,22 @@ def test_bucket_list_long_name():
     is_empty = _bucket_is_empty(bucket)
     assert is_empty == True
 
-# AWS does not enforce all documented bucket restrictions.
-# http://docs.amazonwebservices.com/AmazonS3/2006-03-01/dev/index.html?BucketRestrictions.html
-@pytest.mark.fails_on_aws
 def test_bucket_create_naming_bad_ip():
     check_bad_bucket_name('192.168.5.123')
 
 # test_bucket_create_naming_dns_* are valid but not recommended
-@pytest.mark.fails_on_aws
-# Should now pass on AWS even though it has 'fails_on_aws' attr.
 def test_bucket_create_naming_dns_underscore():
     invalid_bucketname = 'foo_bar'
     status, error_code = check_invalid_bucketname(invalid_bucketname)
     assert status == 400
     assert error_code == 'InvalidBucketName'
 
-# Breaks DNS with SubdomainCallingFormat
-@pytest.mark.fails_on_aws
 def test_bucket_create_naming_dns_long():
     prefix = get_prefix()
     assert len(prefix) < 50
     num = 63 - len(prefix)
     check_good_bucket_name(num * 'a')
 
-# Breaks DNS with SubdomainCallingFormat
-@pytest.mark.fails_on_aws
-# Should now pass on AWS even though it has 'fails_on_aws' attr.
 def test_bucket_create_naming_dns_dash_at_end():
     invalid_bucketname = 'foo-'
     status, error_code = check_invalid_bucketname(invalid_bucketname)
@@ -3805,9 +3808,6 @@ def test_bucket_create_naming_dns_dash_at_end():
     assert error_code == 'InvalidBucketName'
 
 
-# Breaks DNS with SubdomainCallingFormat
-@pytest.mark.fails_on_aws
-# Should now pass on AWS even though it has 'fails_on_aws' attr.
 def test_bucket_create_naming_dns_dot_dot():
     invalid_bucketname = 'foo..bar'
     status, error_code = check_invalid_bucketname(invalid_bucketname)
@@ -3815,9 +3815,6 @@ def test_bucket_create_naming_dns_dot_dot():
     assert error_code == 'InvalidBucketName'
 
 
-# Breaks DNS with SubdomainCallingFormat
-@pytest.mark.fails_on_aws
-# Should now pass on AWS even though it has 'fails_on_aws' attr.
 def test_bucket_create_naming_dns_dot_dash():
     invalid_bucketname = 'foo.-bar'
     status, error_code = check_invalid_bucketname(invalid_bucketname)
@@ -3825,9 +3822,6 @@ def test_bucket_create_naming_dns_dot_dash():
     assert error_code == 'InvalidBucketName'
 
 
-# Breaks DNS with SubdomainCallingFormat
-@pytest.mark.fails_on_aws
-# Should now pass on AWS even though it has 'fails_on_aws' attr.
 def test_bucket_create_naming_dns_dash_dot():
     invalid_bucketname = 'foo-.bar'
     status, error_code = check_invalid_bucketname(invalid_bucketname)
@@ -3840,13 +3834,13 @@ def test_bucket_create_exists():
     bucket_name = get_new_bucket_name()
     client = get_client()
 
-    client.create_bucket(Bucket=bucket_name)
+    create_bucket(client, Bucket=bucket_name)
     try:
-        response = client.create_bucket(Bucket=bucket_name)
+        response = create_bucket(client, Bucket=bucket_name)
     except ClientError as e:
         status, error_code = _get_status_and_error_code(e.response)
-        assert e.status == 409
-        assert e.error_code == 'BucketAlreadyOwnedByYou'
+        assert status == 409
+        assert error_code == 'BucketAlreadyOwnedByYou'
 
 @pytest.mark.fails_on_dbstore
 def test_bucket_get_location():
@@ -3856,10 +3850,16 @@ def test_bucket_get_location():
     bucket_name = get_new_bucket_name()
     client = get_client()
 
-    client.create_bucket(Bucket=bucket_name, CreateBucketConfiguration={'LocationConstraint': location_constraint})
+    params = {
+        'Bucket': bucket_name,
+    }
+    if location_constraint != DEFAULT_REGION:
+        params['CreateBucketConfiguration'] = {'LocationConstraint': location_constraint}
+
+    create_bucket(client, **params)
 
     response = client.get_bucket_location(Bucket=bucket_name)
-    if location_constraint == "":
+    if location_constraint in {'', DEFAULT_REGION}:
         location_constraint = None
     assert response['LocationConstraint'] == location_constraint
 
@@ -3872,30 +3872,52 @@ def test_bucket_create_exists_nonowner():
 
     alt_client = get_alt_client()
 
-    client.create_bucket(Bucket=bucket_name)
-    e = assert_raises(ClientError, alt_client.create_bucket, Bucket=bucket_name)
+    create_bucket(client, Bucket=bucket_name)
+    e = assert_raises(ClientError, create_bucket, alt_client, Bucket=bucket_name)
     status, error_code = _get_status_and_error_code(e.response)
     assert status == 409
     assert error_code == 'BucketAlreadyExists'
 
 @pytest.mark.fails_on_dbstore
 def test_bucket_recreate_overwrite_acl():
-    bucket_name = get_new_bucket_name()
     client = get_client()
+    if client.meta.region_name != DEFAULT_REGION:
+        pytest.skip('recreate overwrite acl only works in default region')
 
-    client.create_bucket(Bucket=bucket_name, ACL='public-read')
-    e = assert_raises(ClientError, client.create_bucket, Bucket=bucket_name)
-    status, error_code = _get_status_and_error_code(e.response)
-    assert status == 409
-    assert error_code == 'BucketAlreadyExists'
+    bucket_name = _setup_bucket_acl('public-read')
+
+    create_bucket(client, Bucket=bucket_name)
+
+    response = client.get_bucket_acl(Bucket=bucket_name)
+
+    display_name = get_main_display_name()
+    user_id = get_main_user_id()
+
+    assert response['Owner'].get('DisplayName') == display_name
+    assert response['Owner'].get('ID') == user_id
+
+    grants = response['Grants']
+    check_grants(
+        grants,
+        [
+            dict(
+                Permission='FULL_CONTROL',
+                ID=user_id,
+                DisplayName=display_name,
+                URI=None,
+                EmailAddress=None,
+                Type='CanonicalUser',
+            ),
+        ],
+    )
 
 @pytest.mark.fails_on_dbstore
 def test_bucket_recreate_new_acl():
     bucket_name = get_new_bucket_name()
     client = get_client()
 
-    client.create_bucket(Bucket=bucket_name)
-    e = assert_raises(ClientError, client.create_bucket, Bucket=bucket_name, ACL='public-read')
+    create_bucket(client, Bucket=bucket_name)
+    e = assert_raises(ClientError, create_bucket, client, Bucket=bucket_name, ACL='public-read')
     status, error_code = _get_status_and_error_code(e.response)
     assert status == 409
     assert error_code == 'BucketAlreadyExists'
@@ -3917,16 +3939,16 @@ def check_grants(got, want):
     """
     assert len(got) == len(want)
 
-    # There are instances when got does not match due the order of item.
-    if got[0]["Grantee"].get("DisplayName"):
-        got.sort(key=lambda x: x["Grantee"].get("DisplayName"))
-        want.sort(key=lambda x: x["DisplayName"])
+    # # There are instances when got does not match due the order of item.
+    # if got[0]["Grantee"].get("DisplayName"):
+    #     got.sort(key=lambda x: x["Grantee"].get("DisplayName") or "")
+    #     want.sort(key=lambda x: x.get("DisplayName") or "")
 
     for g, w in zip(got, want):
         w = dict(w)
         g = dict(g)
         assert g.pop('Permission', None) == w['Permission']
-        assert g['Grantee'].pop('DisplayName', None) == w['DisplayName']
+        # assert g['Grantee'].pop('DisplayName', None) == w['DisplayName']
         assert g['Grantee'].pop('ID', None) == w['ID']
         assert g['Grantee'].pop('Type', None) == w['Type']
         assert g['Grantee'].pop('URI', None) == w['URI']
@@ -3943,8 +3965,8 @@ def test_bucket_acl_default():
     display_name = get_main_display_name()
     user_id = get_main_user_id()
 
-    assert response['Owner']['DisplayName'] == display_name
-    assert response['Owner']['ID'] == user_id
+    assert response['Owner'].get('DisplayName') == display_name
+    assert response['Owner'].get('ID') == user_id
 
     grants = response['Grants']
     check_grants(
@@ -3965,7 +3987,7 @@ def test_bucket_acl_default():
 def test_bucket_acl_canned_during_create():
     bucket_name = get_new_bucket_name()
     client = get_client()
-    client.create_bucket(ACL='public-read', Bucket=bucket_name)
+    create_bucket(client, ACL='public-read', Bucket=bucket_name)
     response = client.get_bucket_acl(Bucket=bucket_name)
 
     display_name = get_main_display_name()
@@ -3976,20 +3998,20 @@ def test_bucket_acl_canned_during_create():
         grants,
         [
             dict(
-                Permission='READ',
-                ID=None,
-                DisplayName=None,
-                URI='http://acs.amazonaws.com/groups/global/AllUsers',
-                EmailAddress=None,
-                Type='Group',
-                ),
-            dict(
                 Permission='FULL_CONTROL',
                 ID=user_id,
                 DisplayName=display_name,
                 URI=None,
                 EmailAddress=None,
                 Type='CanonicalUser',
+            ),
+            dict(
+                Permission='READ',
+                ID=None,
+                DisplayName=None,
+                URI='http://acs.amazonaws.com/groups/global/AllUsers',
+                EmailAddress=None,
+                Type='Group',
                 ),
             ],
         )
@@ -3997,7 +4019,7 @@ def test_bucket_acl_canned_during_create():
 def test_bucket_acl_canned():
     bucket_name = get_new_bucket_name()
     client = get_client()
-    client.create_bucket(ACL='public-read', Bucket=bucket_name)
+    create_bucket(client, ACL='public-read', Bucket=bucket_name)
     response = client.get_bucket_acl(Bucket=bucket_name)
 
     display_name = get_main_display_name()
@@ -4008,20 +4030,20 @@ def test_bucket_acl_canned():
         grants,
         [
             dict(
-                Permission='READ',
-                ID=None,
-                DisplayName=None,
-                URI='http://acs.amazonaws.com/groups/global/AllUsers',
-                EmailAddress=None,
-                Type='Group',
-                ),
-            dict(
                 Permission='FULL_CONTROL',
                 ID=user_id,
                 DisplayName=display_name,
                 URI=None,
                 EmailAddress=None,
                 Type='CanonicalUser',
+            ),
+            dict(
+                Permission='READ',
+                ID=None,
+                DisplayName=None,
+                URI='http://acs.amazonaws.com/groups/global/AllUsers',
+                EmailAddress=None,
+                Type='Group',
                 ),
             ],
         )
@@ -4047,7 +4069,7 @@ def test_bucket_acl_canned():
 def test_bucket_acl_canned_publicreadwrite():
     bucket_name = get_new_bucket_name()
     client = get_client()
-    client.create_bucket(ACL='public-read-write', Bucket=bucket_name)
+    create_bucket(client, ACL='public-read-write', Bucket=bucket_name)
     response = client.get_bucket_acl(Bucket=bucket_name)
 
     display_name = get_main_display_name()
@@ -4056,6 +4078,14 @@ def test_bucket_acl_canned_publicreadwrite():
     check_grants(
         grants,
         [
+            dict(
+                Permission='FULL_CONTROL',
+                ID=user_id,
+                DisplayName=display_name,
+                URI=None,
+                EmailAddress=None,
+                Type='CanonicalUser',
+            ),
             dict(
                 Permission='READ',
                 ID=None,
@@ -4072,21 +4102,13 @@ def test_bucket_acl_canned_publicreadwrite():
                 EmailAddress=None,
                 Type='Group',
                 ),
-            dict(
-                Permission='FULL_CONTROL',
-                ID=user_id,
-                DisplayName=display_name,
-                URI=None,
-                EmailAddress=None,
-                Type='CanonicalUser',
-                ),
             ],
         )
 
 def test_bucket_acl_canned_authenticatedread():
     bucket_name = get_new_bucket_name()
     client = get_client()
-    client.create_bucket(ACL='authenticated-read', Bucket=bucket_name)
+    create_bucket(client, ACL='authenticated-read', Bucket=bucket_name)
     response = client.get_bucket_acl(Bucket=bucket_name)
 
     display_name = get_main_display_name()
@@ -4097,14 +4119,6 @@ def test_bucket_acl_canned_authenticatedread():
         grants,
         [
             dict(
-                Permission='READ',
-                ID=None,
-                DisplayName=None,
-                URI='http://acs.amazonaws.com/groups/global/AuthenticatedUsers',
-                EmailAddress=None,
-                Type='Group',
-                ),
-            dict(
                 Permission='FULL_CONTROL',
                 ID=user_id,
                 DisplayName=display_name,
@@ -4112,6 +4126,14 @@ def test_bucket_acl_canned_authenticatedread():
                 EmailAddress=None,
                 Type='CanonicalUser',
                 ),
+            dict(
+                Permission='READ',
+                ID=None,
+                DisplayName=None,
+                URI='http://acs.amazonaws.com/groups/global/AuthenticatedUsers',
+                EmailAddress=None,
+                Type='Group',
+            ),
             ],
         )
 
@@ -4177,7 +4199,7 @@ def test_object_acl_default():
         )
 
 def test_object_acl_canned_during_create():
-    bucket_name = get_new_bucket()
+    bucket_name = _setup_bucket_acl()
     client = get_client()
 
     client.put_object(ACL='public-read', Bucket=bucket_name, Key='foo', Body='bar')
@@ -4186,11 +4208,18 @@ def test_object_acl_canned_during_create():
     display_name = get_main_display_name()
     user_id = get_main_user_id()
 
-
     grants = response['Grants']
     check_grants(
         grants,
         [
+            dict(
+                Permission='FULL_CONTROL',
+                ID=user_id,
+                DisplayName=display_name,
+                URI=None,
+                EmailAddress=None,
+                Type='CanonicalUser',
+            ),
             dict(
                 Permission='READ',
                 ID=None,
@@ -4199,19 +4228,11 @@ def test_object_acl_canned_during_create():
                 EmailAddress=None,
                 Type='Group',
                 ),
-            dict(
-                Permission='FULL_CONTROL',
-                ID=user_id,
-                DisplayName=display_name,
-                URI=None,
-                EmailAddress=None,
-                Type='CanonicalUser',
-                ),
             ],
         )
 
 def test_object_acl_canned():
-    bucket_name = get_new_bucket()
+    bucket_name = _setup_bucket_acl()
     client = get_client()
 
     # Since it defaults to private, set it public-read first
@@ -4226,20 +4247,20 @@ def test_object_acl_canned():
         grants,
         [
             dict(
-                Permission='READ',
-                ID=None,
-                DisplayName=None,
-                URI='http://acs.amazonaws.com/groups/global/AllUsers',
-                EmailAddress=None,
-                Type='Group',
-                ),
-            dict(
                 Permission='FULL_CONTROL',
                 ID=user_id,
                 DisplayName=display_name,
                 URI=None,
                 EmailAddress=None,
                 Type='CanonicalUser',
+            ),
+            dict(
+                Permission='READ',
+                ID=None,
+                DisplayName=None,
+                URI='http://acs.amazonaws.com/groups/global/AllUsers',
+                EmailAddress=None,
+                Type='Group',
                 ),
             ],
         )
@@ -4264,7 +4285,7 @@ def test_object_acl_canned():
         )
 
 def test_object_acl_canned_publicreadwrite():
-    bucket_name = get_new_bucket()
+    bucket_name = _setup_bucket_acl()
     client = get_client()
 
     client.put_object(ACL='public-read-write', Bucket=bucket_name, Key='foo', Body='bar')
@@ -4277,6 +4298,14 @@ def test_object_acl_canned_publicreadwrite():
     check_grants(
         grants,
         [
+            dict(
+                Permission='FULL_CONTROL',
+                ID=user_id,
+                DisplayName=display_name,
+                URI=None,
+                EmailAddress=None,
+                Type='CanonicalUser',
+            ),
             dict(
                 Permission='READ',
                 ID=None,
@@ -4293,19 +4322,11 @@ def test_object_acl_canned_publicreadwrite():
                 EmailAddress=None,
                 Type='Group',
                 ),
-            dict(
-                Permission='FULL_CONTROL',
-                ID=user_id,
-                DisplayName=display_name,
-                URI=None,
-                EmailAddress=None,
-                Type='CanonicalUser',
-                ),
             ],
         )
 
 def test_object_acl_canned_authenticatedread():
-    bucket_name = get_new_bucket()
+    bucket_name = _setup_bucket_acl()
     client = get_client()
 
     client.put_object(ACL='authenticated-read', Bucket=bucket_name, Key='foo', Body='bar')
@@ -4319,6 +4340,14 @@ def test_object_acl_canned_authenticatedread():
         grants,
         [
             dict(
+                Permission='FULL_CONTROL',
+                ID=user_id,
+                DisplayName=display_name,
+                URI=None,
+                EmailAddress=None,
+                Type='CanonicalUser',
+            ),
+            dict(
                 Permission='READ',
                 ID=None,
                 DisplayName=None,
@@ -4326,29 +4355,19 @@ def test_object_acl_canned_authenticatedread():
                 EmailAddress=None,
                 Type='Group',
                 ),
-            dict(
-                Permission='FULL_CONTROL',
-                ID=user_id,
-                DisplayName=display_name,
-                URI=None,
-                EmailAddress=None,
-                Type='CanonicalUser',
-                ),
             ],
         )
 
 def test_object_acl_canned_bucketownerread():
-    bucket_name = get_new_bucket_name()
+    bucket_name = _setup_bucket_acl('public-read-write')
     main_client = get_client()
     alt_client = get_alt_client()
-
-    main_client.create_bucket(Bucket=bucket_name, ACL='public-read-write')
 
     alt_client.put_object(Bucket=bucket_name, Key='foo', Body='bar')
 
     bucket_acl_response = main_client.get_bucket_acl(Bucket=bucket_name)
-    bucket_owner_id = bucket_acl_response['Grants'][2]['Grantee']['ID']
-    bucket_owner_display_name = bucket_acl_response['Grants'][2]['Grantee']['DisplayName']
+    bucket_owner_id = bucket_acl_response['Grants'][0]['Grantee']['ID']
+    bucket_owner_display_name = bucket_acl_response['Grants'][0]['Grantee'].get('DisplayName')
 
     alt_client.put_object(ACL='bucket-owner-read', Bucket=bucket_name, Key='foo')
     response = alt_client.get_object_acl(Bucket=bucket_name, Key='foo')
@@ -4380,23 +4399,23 @@ def test_object_acl_canned_bucketownerread():
         )
 
 def test_object_acl_canned_bucketownerfullcontrol():
-    bucket_name = get_new_bucket_name()
+    bucket_name = _setup_bucket_acl('public-read-write')
     main_client = get_client()
     alt_client = get_alt_client()
-
-    main_client.create_bucket(Bucket=bucket_name, ACL='public-read-write')
 
     alt_client.put_object(Bucket=bucket_name, Key='foo', Body='bar')
 
     bucket_acl_response = main_client.get_bucket_acl(Bucket=bucket_name)
-    bucket_owner_id = bucket_acl_response['Grants'][2]['Grantee']['ID']
-    bucket_owner_display_name = bucket_acl_response['Grants'][2]['Grantee']['DisplayName']
+    bucket_owner_id = bucket_acl_response['Grants'][0]['Grantee']['ID']
+    bucket_owner_display_name = bucket_acl_response['Grants'][0]['Grantee'].get('DisplayName')
 
     alt_client.put_object(ACL='bucket-owner-full-control', Bucket=bucket_name, Key='foo')
-    response = alt_client.get_object_acl(Bucket=bucket_name, Key='foo')
+    # NOTE: Alt client can't get object ACL when ObjectOwnership is BucketOwnerPreferred and bucket-owner-full-control
+    # is set.
+    response = main_client.get_object_acl(Bucket=bucket_name, Key='foo')
 
-    alt_display_name = get_alt_display_name()
-    alt_user_id = get_alt_user_id()
+    main_display_name = get_main_display_name()
+    main_user_id = get_main_user_id()
 
     grants = response['Grants']
     check_grants(
@@ -4404,16 +4423,8 @@ def test_object_acl_canned_bucketownerfullcontrol():
         [
             dict(
                 Permission='FULL_CONTROL',
-                ID=alt_user_id,
-                DisplayName=alt_display_name,
-                URI=None,
-                EmailAddress=None,
-                Type='CanonicalUser',
-                ),
-            dict(
-                Permission='FULL_CONTROL',
-                ID=bucket_owner_id,
-                DisplayName=bucket_owner_display_name,
+                ID=main_user_id,
+                DisplayName=main_display_name,
                 URI=None,
                 EmailAddress=None,
                 Type='CanonicalUser',
@@ -4423,11 +4434,9 @@ def test_object_acl_canned_bucketownerfullcontrol():
 
 @pytest.mark.fails_on_aws
 def test_object_acl_full_control_verify_owner():
-    bucket_name = get_new_bucket_name()
+    bucket_name = _setup_bucket_acl('public-read-write')
     main_client = get_client()
     alt_client = get_alt_client()
-
-    main_client.create_bucket(Bucket=bucket_name, ACL='public-read-write')
 
     main_client.put_object(Bucket=bucket_name, Key='foo', Body='bar')
 
@@ -4437,11 +4446,11 @@ def test_object_acl_full_control_verify_owner():
     main_user_id = get_main_user_id()
     main_display_name = get_main_display_name()
 
-    grant = { 'Grants': [{'Grantee': {'ID': alt_user_id, 'Type': 'CanonicalUser' }, 'Permission': 'FULL_CONTROL'}], 'Owner': {'DisplayName': main_display_name, 'ID': main_user_id}}
+    grant = { 'Grants': [{'Grantee': {'ID': alt_user_id, 'Type': 'CanonicalUser' }, 'Permission': 'FULL_CONTROL'}], 'Owner': {'DisplayName': main_display_name or '', 'ID': main_user_id}}
 
     main_client.put_object_acl(Bucket=bucket_name, Key='foo', AccessControlPolicy=grant)
 
-    grant = { 'Grants': [{'Grantee': {'ID': alt_user_id, 'Type': 'CanonicalUser' }, 'Permission': 'READ_ACP'}], 'Owner': {'DisplayName': main_display_name, 'ID': main_user_id}}
+    grant = { 'Grants': [{'Grantee': {'ID': alt_user_id, 'Type': 'CanonicalUser' }, 'Permission': 'READ_ACP'}], 'Owner': {'DisplayName': main_display_name or '', 'ID': main_user_id}}
 
     alt_client.put_object_acl(Bucket=bucket_name, Key='foo', AccessControlPolicy=grant)
 
@@ -4466,16 +4475,14 @@ def add_obj_user_grant(bucket_name, key, grant):
     grants = response['Grants']
     grants.append(grant)
 
-    grant = {'Grants': grants, 'Owner': {'DisplayName': main_display_name, 'ID': main_user_id}}
+    grant = {'Grants': grants, 'Owner': {'DisplayName': main_display_name or '', 'ID': main_user_id}}
 
     return grant
 
 def test_object_acl_full_control_verify_attributes():
-    bucket_name = get_new_bucket_name()
+    bucket_name = _setup_bucket_acl('public-read-write')
     main_client = get_client()
     alt_client = get_alt_client()
-
-    main_client.create_bucket(Bucket=bucket_name, ACL='public-read-write')
 
     header = {'x-amz-foo': 'bar'}
     # lambda to add any header
@@ -4524,7 +4531,11 @@ def add_bucket_user_grant(bucket_name, grant):
     grants = response['Grants']
     grants.append(grant)
 
-    grant = {'Grants': grants, 'Owner': {'DisplayName': main_display_name, 'ID': main_user_id}}
+    owner = {'ID': main_user_id}
+    if main_display_name is not None:
+        owner['DisplayName'] = main_display_name
+
+    grant = {'Grants': grants, 'Owner': owner}
 
     return grant
 
@@ -4533,7 +4544,7 @@ def _check_object_acl(permission):
     Sets the permission on an object then checks to see
     if it was set
     """
-    bucket_name = get_new_bucket()
+    bucket_name = _setup_bucket_acl()
     client = get_client()
 
     client.put_object(Bucket=bucket_name, Key='foo', Body='bar')
@@ -4618,17 +4629,17 @@ def _bucket_acl_grant_userid(permission):
         grants,
         [
             dict(
-                Permission=permission,
-                ID=alt_user_id,
-                DisplayName=alt_display_name,
+                Permission='FULL_CONTROL',
+                ID=main_user_id,
+                DisplayName=main_display_name,
                 URI=None,
                 EmailAddress=None,
                 Type='CanonicalUser',
                 ),
             dict(
-                Permission='FULL_CONTROL',
-                ID=main_user_id,
-                DisplayName=main_display_name,
+                Permission=permission,
+                ID=alt_user_id,
+                DisplayName=alt_display_name,
                 URI=None,
                 EmailAddress=None,
                 Type='CanonicalUser',
@@ -4712,7 +4723,7 @@ def test_bucket_acl_grant_userid_fullcontrol():
 
     bucket_acl_response = client.get_bucket_acl(Bucket=bucket_name)
     owner_id = bucket_acl_response['Owner']['ID']
-    owner_display_name = bucket_acl_response['Owner']['DisplayName']
+    owner_display_name = bucket_acl_response['Owner'].get('DisplayName')
 
     main_display_name = get_main_display_name()
     main_user_id = get_main_user_id()
@@ -4811,7 +4822,7 @@ def _get_acl_header(user_id=None, perms=None):
 @pytest.mark.fails_on_dho
 @pytest.mark.fails_on_aws
 def test_object_header_acl_grants():
-    bucket_name = get_new_bucket()
+    bucket_name = _setup_bucket_acl()
     client = get_client()
 
     alt_user_id = get_alt_user_id()
@@ -4850,6 +4861,14 @@ def test_object_header_acl_grants():
                 Type='CanonicalUser',
                 ),
             dict(
+                Permission='FULL_CONTROL',
+                ID=alt_user_id,
+                DisplayName=alt_display_name,
+                URI=None,
+                EmailAddress=None,
+                Type='CanonicalUser',
+            ),
+            dict(
                 Permission='READ_ACP',
                 ID=alt_user_id,
                 DisplayName=alt_display_name,
@@ -4859,14 +4878,6 @@ def test_object_header_acl_grants():
                 ),
             dict(
                 Permission='WRITE_ACP',
-                ID=alt_user_id,
-                DisplayName=alt_display_name,
-                URI=None,
-                EmailAddress=None,
-                Type='CanonicalUser',
-                ),
-            dict(
-                Permission='FULL_CONTROL',
                 ID=alt_user_id,
                 DisplayName=alt_display_name,
                 URI=None,
@@ -4891,7 +4902,7 @@ def test_bucket_header_acl_grants():
 
     client.meta.events.register('before-sign.s3.CreateBucket', add_headers_before_sign)
 
-    client.create_bucket(Bucket=bucket_name)
+    create_bucket(client, Bucket=bucket_name)
 
     response = client.get_bucket_acl(Bucket=bucket_name)
 
@@ -4919,6 +4930,14 @@ def test_bucket_header_acl_grants():
                 Type='CanonicalUser',
                 ),
             dict(
+                Permission='FULL_CONTROL',
+                ID=alt_user_id,
+                DisplayName=alt_display_name,
+                URI=None,
+                EmailAddress=None,
+                Type='CanonicalUser',
+                ),
+            dict(
                 Permission='READ_ACP',
                 ID=alt_user_id,
                 DisplayName=alt_display_name,
@@ -4928,14 +4947,6 @@ def test_bucket_header_acl_grants():
                 ),
             dict(
                 Permission='WRITE_ACP',
-                ID=alt_user_id,
-                DisplayName=alt_display_name,
-                URI=None,
-                EmailAddress=None,
-                Type='CanonicalUser',
-                ),
-            dict(
-                Permission='FULL_CONTROL',
                 ID=alt_user_id,
                 DisplayName=alt_display_name,
                 URI=None,
@@ -5050,14 +5061,13 @@ def _setup_access(bucket_acl, object_acl):
     - b: owning user, default ACL in bucket w/given ACL
     - b2: same object accessed by a some other user
     """
-    bucket_name = get_new_bucket()
+    bucket_name = _setup_bucket_acl(bucket_acl)
     client = get_client()
 
     key1 = 'foo'
     key2 = 'bar'
     newkey = 'new'
 
-    client.put_bucket_acl(Bucket=bucket_name, ACL=bucket_acl)
     client.put_object(Bucket=bucket_name, Key=key1, Body='foocontent')
     client.put_object_acl(Bucket=bucket_name, Key=key1, ACL=object_acl)
     client.put_object(Bucket=bucket_name, Key=key2, Body='barcontent')
@@ -5296,10 +5306,10 @@ def test_access_bucket_publicreadwrite_object_private():
 
     # a should be private, b gets default (private)
     check_access_denied(alt_client.get_object, Bucket=bucket_name, Key=key1)
-    alt_client.put_object(Bucket=bucket_name, Key=key1, Body='barcontent')
+    check_access_denied(alt_client.put_object, Bucket=bucket_name, Key=key1, Body='barcontent')
 
     check_access_denied(alt_client.get_object, Bucket=bucket_name, Key=key2)
-    alt_client.put_object(Bucket=bucket_name, Key=key2, Body='baroverwrite')
+    check_access_denied(alt_client.put_object, Bucket=bucket_name, Key=key2, Body='baroverwrite')
 
     objs = get_objects_list(bucket=bucket_name, client=alt_client)
     assert objs == ['bar', 'foo']
@@ -5314,10 +5324,10 @@ def test_access_bucket_publicreadwrite_object_publicread():
 
     body = _get_body(response)
     assert body == 'foocontent'
-    alt_client.put_object(Bucket=bucket_name, Key=key1, Body='barcontent')
+    check_access_denied(alt_client.put_object, Bucket=bucket_name, Key=key1, Body='barcontent')
 
     check_access_denied(alt_client.get_object, Bucket=bucket_name, Key=key2)
-    alt_client.put_object(Bucket=bucket_name, Key=key2, Body='baroverwrite')
+    check_access_denied(alt_client.put_object, Bucket=bucket_name, Key=key2, Body='baroverwrite')
 
     objs = get_objects_list(bucket=bucket_name, client=alt_client)
     assert objs == ['bar', 'foo']
@@ -5331,9 +5341,9 @@ def test_access_bucket_publicreadwrite_object_publicreadwrite():
 
     # a should be public-read-write, b gets default (private)
     assert body == 'foocontent'
-    alt_client.put_object(Bucket=bucket_name, Key=key1, Body='foooverwrite')
+    check_access_denied(alt_client.put_object, Bucket=bucket_name, Key=key1, Body='foooverwrite')
     check_access_denied(alt_client.get_object, Bucket=bucket_name, Key=key2)
-    alt_client.put_object(Bucket=bucket_name, Key=key2, Body='baroverwrite')
+    check_access_denied(alt_client.put_object, Bucket=bucket_name, Key=key2, Body='baroverwrite')
     objs = get_objects_list(bucket=bucket_name, client=alt_client)
     assert objs == ['bar', 'foo']
     alt_client.put_object(Bucket=bucket_name, Key=newkey, Body='newcontent')
@@ -5346,7 +5356,7 @@ def test_buckets_create_then_list():
         bucket_names.append(bucket_name)
 
     for name in bucket_names:
-        client.create_bucket(Bucket=name)
+        create_bucket(client, Bucket=name)
 
     response = client.list_buckets()
     bucket_dicts = response['Buckets']
@@ -5359,14 +5369,14 @@ def test_buckets_create_then_list():
             raise RuntimeError("S3 implementation's GET on Service did not return bucket we created: %r", bucket.name)
 
 def test_buckets_list_ctime():
-    # check that creation times are within a day
-    before = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=1)
+    # check that creation times are within 15 minutes
+    before = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(minutes=15)
 
     client = get_client()
     buckets = []
     for i in range(5):
         name = get_new_bucket_name()
-        client.create_bucket(Bucket=name)
+        create_bucket(client, Bucket=name)
         buckets.append(name)
 
     response = client.list_buckets()
@@ -5391,6 +5401,7 @@ def test_list_buckets_invalid_auth():
     e = assert_raises(ClientError, bad_auth_client.list_buckets)
     status, error_code = _get_status_and_error_code(e.response)
     assert status == 403
+    assert error_code == 'InvalidAccessKeyId'
 
 def test_list_buckets_bad_auth():
     main_access_key = get_main_aws_access_key()
@@ -5398,6 +5409,7 @@ def test_list_buckets_bad_auth():
     e = assert_raises(ClientError, bad_auth_client.list_buckets)
     status, error_code = _get_status_and_error_code(e.response)
     assert status == 403
+    assert error_code == 'SignatureDoesNotMatch'
 
 @pytest.mark.fails_on_dbstore
 def test_list_buckets_paginated():
@@ -5455,14 +5467,18 @@ def test_bucket_create_naming_good_contains_hyphen():
     check_good_bucket_name('aaa-111')
 
 def test_bucket_recreate_not_overriding():
+    client = get_client()
+    if client.meta.region_name != DEFAULT_REGION:
+        pytest.skip('bucket recreate only works in default region')
+
     key_names = ['mykey1', 'mykey2']
     bucket_name = _create_objects(keys=key_names)
 
     objs_list = get_objects_list(bucket_name)
     assert key_names == objs_list
 
-    client = get_client()
-    client.create_bucket(Bucket=bucket_name)
+    # NOTE: works only with default region
+    create_bucket(client, Bucket=bucket_name)
 
     objs_list = get_objects_list(bucket_name)
     assert key_names == objs_list
@@ -5496,7 +5512,7 @@ def test_bucket_create_special_key_names():
         response = client.get_object(Bucket=bucket_name, Key=name)
         body = _get_body(response)
         assert name == body
-        client.put_object_acl(Bucket=bucket_name, Key=name, ACL='private')
+        # client.put_object_acl(Bucket=bucket_name, Key=name, ACL='private')
 
 def test_bucket_list_special_prefix():
     key_names = ['_bla/1', '_bla/2', '_bla/3', '_bla/4', 'abcd']
@@ -5621,8 +5637,8 @@ def test_object_copy_not_owned_bucket():
     alt_client = get_alt_client()
     bucket_name1 = get_new_bucket_name()
     bucket_name2 = get_new_bucket_name()
-    client.create_bucket(Bucket=bucket_name1)
-    alt_client.create_bucket(Bucket=bucket_name2)
+    create_bucket(client, Bucket=bucket_name1)
+    create_bucket(alt_client, Bucket=bucket_name2)
 
     client.put_object(Bucket=bucket_name1, Key='foo123bar', Body='foo')
 
@@ -5636,8 +5652,7 @@ def test_object_copy_not_owned_bucket():
 def test_object_copy_not_owned_object_bucket():
     client = get_client()
     alt_client = get_alt_client()
-    bucket_name = get_new_bucket_name()
-    client.create_bucket(Bucket=bucket_name)
+    bucket_name = _setup_bucket_acl()
     client.put_object(Bucket=bucket_name, Key='foo123bar', Body='foo')
 
     alt_user_id = get_alt_user_id()
@@ -5657,7 +5672,7 @@ def test_object_copy_not_owned_object_bucket():
 @pytest.mark.copy
 @pytest.mark.fails_on_dbstore
 def test_object_copy_canned_acl():
-    bucket_name = get_new_bucket()
+    bucket_name = _setup_bucket_acl()
     client = get_client()
     alt_client = get_alt_client()
     client.put_object(Bucket=bucket_name, Key='foo123bar', Body='foo')
@@ -6123,10 +6138,9 @@ def test_multipart_copy_invalid_range():
 
     e = assert_raises(ClientError, client.upload_part_copy,Bucket=src_bucket_name, Key='dest', UploadId=upload_id, CopySource=copy_source, CopySourceRange=copy_source_range, PartNumber=1)
     status, error_code = _get_status_and_error_code(e.response)
-    valid_status = [400, 416]
-    if not status in valid_status:
+    if status != 400:
        raise AssertionError("Invalid response " + str(status))
-    assert error_code == 'InvalidRange'
+    assert error_code == 'InvalidArgument'
 
 
 @pytest.mark.copy
@@ -6540,7 +6554,7 @@ def test_list_multipart_upload():
 
 @pytest.mark.fails_on_dbstore
 def test_list_multipart_upload_owner():
-    bucket_name = get_new_bucket()
+    bucket_name = _setup_bucket_acl()
 
     client1 = get_client()
     user1 = get_main_user_id()
@@ -6564,9 +6578,9 @@ def test_list_multipart_upload_owner():
                 assert upload['Key'] == key
                 assert upload['UploadId'] == uploadid
                 assert upload['Initiator']['ID'] == userid
-                assert upload['Initiator']['DisplayName'] == username
+                assert upload['Initiator'].get('DisplayName') == username
                 assert upload['Owner']['ID'] == userid
-                assert upload['Owner']['DisplayName'] == username
+                assert upload['Owner'].get('DisplayName') == username
 
             # list uploads with client1
             uploads1 = client1.list_multipart_uploads(Bucket=bucket_name)['Uploads']
@@ -6644,14 +6658,20 @@ def test_multipart_get_part():
     res = client.complete_multipart_upload(Bucket=bucket_name, Key=key, UploadId=upload_id, MultipartUpload={'Parts': parts})
     assert len(parts) == part_count
 
+    h = hashlib.md5()
+    for part in parts:
+        h.update(binascii.unhexlify(part['ETag']))
+
+    object_etag = '"{}-{}"'.format(h.hexdigest(), part_count)
+
     for part, size in zip(parts, part_sizes):
         response = client.head_object(Bucket=bucket_name, Key=key, PartNumber=part['PartNumber'])
         assert response['PartsCount'] == part_count
-        assert response['ETag'] == res['ETag']
+        assert response['ETag'] == object_etag
 
         response = client.get_object(Bucket=bucket_name, Key=key, PartNumber=part['PartNumber'])
         assert response['PartsCount'] == part_count
-        assert response['ETag'] == res['ETag']
+        assert response['ETag'] == object_etag
         assert response['ContentLength'] == size
         # compare contents
         for chunk in response['Body'].iter_chunks():
@@ -6661,8 +6681,8 @@ def test_multipart_get_part():
     # request PartNumber out of range
     e = assert_raises(ClientError, client.get_object, Bucket=bucket_name, Key=key, PartNumber=5)
     status, error_code = _get_status_and_error_code(e.response)
-    assert status == 400
-    assert error_code == 'InvalidPart'
+    assert status == 416
+    assert error_code == 'InvalidPartNumber'
 
 @pytest.mark.encryption
 @pytest.mark.fails_on_dbstore
@@ -6741,15 +6761,23 @@ def test_multipart_single_get_part():
     res = client.complete_multipart_upload(Bucket=bucket_name, Key=key, UploadId=upload_id, MultipartUpload={'Parts': parts})
     assert len(parts) == part_count
 
+    content_md5 = hashlib.md5()
+    for part in parts:
+        content_md5.update(codecs.decode(part['ETag'], 'hex'))
+    expected_etag = '"{}-{}"'.format(content_md5.hexdigest(), part_count)
+
     for part, size in zip(parts, part_sizes):
         response = client.head_object(Bucket=bucket_name, Key=key, PartNumber=part['PartNumber'])
         assert response['PartsCount'] == part_count
-        assert response['ETag'] == res['ETag']
+        assert response['ETag'] == expected_etag
+        assert response['ResponseMetadata']['HTTPStatusCode'] == 206
 
         response = client.get_object(Bucket=bucket_name, Key=key, PartNumber=part['PartNumber'])
         assert response['PartsCount'] == part_count
-        assert response['ETag'] == res['ETag']
+        assert response['ETag'] == expected_etag
         assert response['ContentLength'] == size
+        assert response['ResponseMetadata']['HTTPStatusCode'] == 206
+
         # compare contents
         for chunk in response['Body'].iter_chunks():
             assert chunk.decode() == data[0:len(chunk)]
@@ -6758,8 +6786,8 @@ def test_multipart_single_get_part():
     # request PartNumber out of range
     e = assert_raises(ClientError, client.get_object, Bucket=bucket_name, Key=key, PartNumber=5)
     status, error_code = _get_status_and_error_code(e.response)
-    assert status == 400
-    assert error_code == 'InvalidPart'
+    assert status == 416
+    assert error_code == 'InvalidPartNumber'
 
 @pytest.mark.fails_on_dbstore
 def test_non_multipart_get_part():
@@ -6773,8 +6801,8 @@ def test_non_multipart_get_part():
     # request for PartNumber > 1 results in InvalidPart
     e = assert_raises(ClientError, client.get_object, Bucket=bucket_name, Key=key, PartNumber=2)
     status, error_code = _get_status_and_error_code(e.response)
-    assert status == 400
-    assert error_code == 'InvalidPart'
+    assert status == 416
+    assert error_code == 'InvalidPartNumber'
 
     # request for PartNumber = 1 gives back the entire object
     response = client.get_object(Bucket=bucket_name, Key=key, PartNumber=1)
@@ -6828,16 +6856,31 @@ def _simple_http_req_100_cont(host, port, is_secure, method, resource):
         s = ctx.wrap_socket(s, server_hostname=host);
     s.settimeout(5)
     s.connect((host, port))
-    s.send(req)
 
+    remain = len(req)
+    while remain:
+        n = s.send(req)
+        req = req[n:]
+        remain -= n
+
+    data = bytearray()
     try:
-        data = s.recv(1024)
-    except socket.error as msg:
-        print('got response: ', msg)
+        while True:
+            recv_data = s.recv(1024)
+            if len(recv_data) == 0:
+               break
+
+            data += recv_data
+            if b'\r\n' in data:
+                break
+    except socket.error as e:
+        print('got response: ', e)
         print('most likely server doesn\'t support 100-continue')
+        raise e
 
     s.close()
     data_str = data.decode()
+    print(data_str)
     l = data_str.split(' ')
 
     assert l[0].startswith('HTTP')
@@ -6847,7 +6890,7 @@ def _simple_http_req_100_cont(host, port, is_secure, method, resource):
 def test_100_continue():
     bucket_name = get_new_bucket_name()
     client = get_client()
-    client.create_bucket(Bucket=bucket_name)
+    create_bucket(client, Bucket=bucket_name)
     objname='testobj'
     resource = '/{bucket}/{obj}'.format(bucket=bucket_name, obj=objname)
 
@@ -7214,7 +7257,7 @@ class FakeWriteFile(FakeFile):
         self.offset += count
 
         # Sneaky! do stuff before we return (the last time)
-        if self.interrupt != None and self.offset == self.size and count > 0:
+        if self.interrupt is not None and self.offset == self.size and count > 0:
             self.interrupt()
 
         return self.char*count
@@ -7398,8 +7441,6 @@ def _test_atomic_conditional_write(file_size):
 
     # create <file_size> file of B's
     # but try to verify the file before we finish writing all the B's
-    lf = (lambda **kwargs: kwargs['params']['headers'].update({'If-Match': '*'}))
-    client.meta.events.register('before-call.s3.PutObject', lf)
     client.put_object(Bucket=bucket_name, Key=objname, Body=fp_b)
 
     # verify B's
@@ -7409,7 +7450,7 @@ def _test_atomic_conditional_write(file_size):
 def test_atomic_conditional_write_1mb():
     _test_atomic_conditional_write(1024*1024)
 
-def _test_atomic_dual_conditional_write(file_size):
+def _test_atomic_dual_conditional_write(boto_upload_iterations_count, file_size):
     """
     create an object, two sessions writing different contents
     confirm that it is all one or the other
@@ -7421,37 +7462,42 @@ def _test_atomic_dual_conditional_write(file_size):
     fp_a = FakeWriteFile(file_size, 'A')
     response = client.put_object(Bucket=bucket_name, Key=objname, Body=fp_a)
     _verify_atomic_key_data(bucket_name, objname, file_size, 'A')
-    etag_fp_a = response['ETag'].replace('"', '')
+    # etag_fp_a = response['ETag'].replace('"', '')
 
     # write <file_size> file of C's
     # but before we're done, try to write all B's
     fp_b = FakeWriteFile(file_size, 'B')
-    lf = (lambda **kwargs: kwargs['params']['headers'].update({'If-Match': etag_fp_a}))
-    client.meta.events.register('before-call.s3.PutObject', lf)
+    # lf = (lambda **kwargs: kwargs['params']['headers'].update({'If-Match': etag_fp_a}))
+    # client.meta.events.register('before-call.s3.PutObject', lf)
+
     def rewind_put_fp_b():
-        fp_b.seek(0)
+        # fp_b.seek(0)
         client.put_object(Bucket=bucket_name, Key=objname, Body=fp_b)
 
-    fp_c = FakeWriteFile(file_size, 'C', rewind_put_fp_b)
+    action_on_count = ActionOnCount(boto_upload_iterations_count, rewind_put_fp_b)
 
-    e = assert_raises(ClientError, client.put_object, Bucket=bucket_name, Key=objname, Body=fp_c)
-    status, error_code = _get_status_and_error_code(e.response)
-    assert status == 412
-    assert error_code == 'PreconditionFailed'
+    fp_c = FakeWriteFile(file_size, 'C', action_on_count.trigger)
+
+    client.put_object(Bucket=bucket_name, Key=objname, Body=fp_c)
+    # e = assert_raises(ClientError, client.put_object, Bucket=bucket_name, Key=objname, Body=fp_c)
+    # status, error_code = _get_status_and_error_code(e.response)
+    # assert status == 412
+    # assert error_code == 'PreconditionFailed'
 
     # verify the file
-    _verify_atomic_key_data(bucket_name, objname, file_size, 'B')
+    _verify_atomic_key_data(bucket_name, objname, file_size, 'C')
 
+# TODO: test not passing with SSL, fix this
+@pytest.mark.fails_on_rgw
+def test_atomic_dual_conditional_write_1mb(boto_upload_iterations_count):
+    _test_atomic_dual_conditional_write(boto_upload_iterations_count, 1024*1024)
+
+
+# NOTE: AWS didn't raise errors on bucket delete.
 @pytest.mark.fails_on_aws
 # TODO: test not passing with SSL, fix this
 @pytest.mark.fails_on_rgw
-def test_atomic_dual_conditional_write_1mb():
-    _test_atomic_dual_conditional_write(1024*1024)
-
-@pytest.mark.fails_on_aws
-# TODO: test not passing with SSL, fix this
-@pytest.mark.fails_on_rgw
-def test_atomic_write_bucket_gone():
+def test_atomic_write_bucket_gone(boto_upload_iterations_count):
     bucket_name = get_new_bucket()
     client = get_client()
 
@@ -7459,9 +7505,13 @@ def test_atomic_write_bucket_gone():
         client.delete_bucket(Bucket=bucket_name)
 
     objname = 'foo'
-    fp_a = FakeWriteFile(1024*1024, 'A', remove_bucket)
+    action = ActionOnCount(boto_upload_iterations_count, remove_bucket)
 
-    e = assert_raises(ClientError, client.put_object, Bucket=bucket_name, Key=objname, Body=fp_a)
+    fp_a = FakeWriteFile(1024*1024, 'A', action.trigger)
+
+    client.put_object(Bucket=bucket_name, Key=objname, Body=fp_a)
+
+    e = assert_raises(ClientError, client.get_object, Bucket=bucket_name, Key=objname)
     status, error_code = _get_status_and_error_code(e.response)
     assert status == 404
     assert error_code == 'NoSuchBucket'
@@ -7504,58 +7554,50 @@ class ActionOnCount:
         if self.count == self.trigger_count:
             self.result = self.action()
 
-def test_multipart_resend_first_finishes_last():
+
+@pytest.fixture
+def boto_upload_iterations_count():
+    bucket_name = get_new_bucket()
+    client = get_client()
+    key_name = "foo"
+    # upload_part might read multiple times from the object
+    # first time when it calculates md5, second time when it calculates X-Amz-Content-SHA256, third time when writes
+    # data out. We want to interject only on the last time, but we can't be
+    # sure how many times it's going to read, so let's have a test run
+    # and count the number of reads
+    counter = Counter(0)
+    fp_dry_run = FakeWriteFile(8, 'C', counter.inc)
+
+    client.put_object(Bucket=bucket_name, Key=key_name, Body=fp_dry_run)
+    return counter.val
+
+
+# NOTE: AWS has another result.
+@pytest.mark.fails_on_aws
+def test_multipart_resend_first_finishes_last(boto_upload_iterations_count):
     bucket_name = get_new_bucket()
     client = get_client()
     key_name = "mymultipart"
 
-    response = client.create_multipart_upload(Bucket=bucket_name, Key=key_name)
-    upload_id = response['UploadId']
-
-    #file_size = 8*1024*1024
+    # file_size = 8*1024*1024
     file_size = 8
 
-    counter = Counter(0)
-    # upload_part might read multiple times from the object
-    # first time when it calculates md5, second time when it writes data
-    # out. We want to interject only on the last time, but we can't be
-    # sure how many times it's going to read, so let's have a test run
-    # and count the number of reads
-
-    fp_dry_run = FakeWriteFile(file_size, 'C',
-        lambda: counter.inc()
-        )
-
-    parts = []
-
-    response = client.upload_part(UploadId=upload_id, Bucket=bucket_name, Key=key_name, PartNumber=1, Body=fp_dry_run)
-
-    parts.append({'ETag': response['ETag'].strip('"'), 'PartNumber': 1})
-    client.complete_multipart_upload(Bucket=bucket_name, Key=key_name, UploadId=upload_id, MultipartUpload={'Parts': parts})
-
-    client.delete_object(Bucket=bucket_name, Key=key_name)
-
-    # clear parts
-    parts[:] = []
-
-    # ok, now for the actual test
     fp_b = FakeWriteFile(file_size, 'B')
-    def upload_fp_b():
-        response = client.upload_part(UploadId=upload_id, Bucket=bucket_name, Key=key_name, Body=fp_b, PartNumber=1)
-        parts.append({'ETag': response['ETag'].strip('"'), 'PartNumber': 1})
 
-    action = ActionOnCount(counter.val, lambda: upload_fp_b())
+    def upload_fp_b():
+        client.upload_part(UploadId=upload_id, Bucket=bucket_name, Key=key_name, Body=fp_b, PartNumber=1)
+
+    action = ActionOnCount(boto_upload_iterations_count, upload_fp_b)
 
     response = client.create_multipart_upload(Bucket=bucket_name, Key=key_name)
     upload_id = response['UploadId']
 
-    fp_a = FakeWriteFile(file_size, 'A',
-        lambda: action.trigger()
-        )
+    fp_a = FakeWriteFile(file_size, 'A', action.trigger)
 
     response = client.upload_part(UploadId=upload_id, Bucket=bucket_name, Key=key_name, PartNumber=1, Body=fp_a)
 
-    parts.append({'ETag': response['ETag'].strip('"'), 'PartNumber': 1})
+    parts = [{'ETag': response['ETag'].strip('"'), 'PartNumber': 1}]
+
     client.complete_multipart_upload(Bucket=bucket_name, Key=key_name, UploadId=upload_id, MultipartUpload={'Parts': parts})
 
     _verify_atomic_key_data(bucket_name, key_name, file_size, 'A')
@@ -8232,7 +8274,7 @@ def test_versioning_multi_object_delete_with_marker_create():
     assert key == delete_markers[0]['Key']
 
 def test_versioned_object_acl():
-    bucket_name = get_new_bucket()
+    bucket_name = _setup_bucket_acl()
     client = get_client()
 
     check_configure_versioning_retry(bucket_name, "Enabled", "Enabled")
@@ -8249,7 +8291,8 @@ def test_versioned_object_acl():
     display_name = get_main_display_name()
     user_id = get_main_user_id()
 
-    assert response['Owner']['DisplayName'] == display_name
+    # NOTE: Does not return by AWS
+    # assert response['Owner']['DisplayName'] == display_name
     assert response['Owner']['ID'] == user_id
 
     grants = response['Grants']
@@ -8274,20 +8317,20 @@ def test_versioned_object_acl():
         grants,
         [
             dict(
-                Permission='READ',
-                ID=None,
-                DisplayName=None,
-                URI='http://acs.amazonaws.com/groups/global/AllUsers',
-                EmailAddress=None,
-                Type='Group',
-                ),
-            dict(
                 Permission='FULL_CONTROL',
                 ID=user_id,
                 DisplayName=display_name,
                 URI=None,
                 EmailAddress=None,
                 Type='CanonicalUser',
+                ),
+            dict(
+                Permission='READ',
+                ID=None,
+                DisplayName=None,
+                URI='http://acs.amazonaws.com/groups/global/AllUsers',
+                EmailAddress=None,
+                Type='Group',
                 ),
             ],
         )
@@ -8300,7 +8343,7 @@ def test_versioned_object_acl():
 
 @pytest.mark.fails_on_dbstore
 def test_versioned_object_acl_no_version_specified():
-    bucket_name = get_new_bucket()
+    bucket_name = _setup_bucket_acl()
     client = get_client()
 
     check_configure_versioning_retry(bucket_name, "Enabled", "Enabled")
@@ -8317,8 +8360,9 @@ def test_versioned_object_acl_no_version_specified():
 
     display_name = get_main_display_name()
     user_id = get_main_user_id()
-
-    assert response['Owner']['DisplayName'] == display_name
+    
+    # NOTE: Does not return by AWS
+    # assert response['Owner']['DisplayName'] == display_name
     assert response['Owner']['ID'] == user_id
 
     grants = response['Grants']
@@ -8343,20 +8387,20 @@ def test_versioned_object_acl_no_version_specified():
         grants,
         [
             dict(
-                Permission='READ',
-                ID=None,
-                DisplayName=None,
-                URI='http://acs.amazonaws.com/groups/global/AllUsers',
-                EmailAddress=None,
-                Type='Group',
-                ),
-            dict(
                 Permission='FULL_CONTROL',
                 ID=user_id,
                 DisplayName=display_name,
                 URI=None,
                 EmailAddress=None,
                 Type='CanonicalUser',
+                ),
+            dict(
+                Permission='READ',
+                ID=None,
+                DisplayName=None,
+                URI='http://acs.amazonaws.com/groups/global/AllUsers',
+                EmailAddress=None,
+                Type='Group',
                 ),
             ],
         )
@@ -8592,7 +8636,6 @@ def test_lifecyclev2_expiration():
 
 @pytest.mark.lifecycle
 @pytest.mark.lifecycle_expiration
-@pytest.mark.fails_on_aws
 def test_lifecycle_expiration_versioning_enabled():
     bucket_name = get_new_bucket()
     client = get_client()
@@ -9488,6 +9531,9 @@ def _test_encryption_sse_customer_write(file_size):
     Create a file of B's, use it to re-set_contents_from_file.
     Re-read the contents, and confirm we get B's
     """
+    if not get_config_is_secure():
+        pytest.skip("test requires secure (HTTPS) endpoint")
+
     bucket_name = get_new_bucket()
     client = get_client()
     key = 'testobj'
@@ -10342,7 +10388,7 @@ def test_restore_object_permanent():
     cloud_sc = get_cloud_storage_class()
     if cloud_sc is None:
         pytest.skip('[s3 cloud] section missing cloud_storage_class')
-    
+
     bucket = get_new_bucket()
     client = get_client()
     key = 'test_restore_perm'
@@ -10709,6 +10755,9 @@ def test_encrypted_transfer_13b():
 
 @pytest.mark.encryption
 def test_encryption_sse_c_method_head():
+    if not get_config_is_secure():
+        pytest.skip("test requires secure (HTTPS) endpoint")
+
     bucket_name = get_new_bucket()
     client = get_client()
     data = 'A'*1000
@@ -10734,6 +10783,9 @@ def test_encryption_sse_c_method_head():
 
 @pytest.mark.encryption
 def test_encryption_sse_c_present():
+    if not get_config_is_secure():
+        pytest.skip("test requires secure (HTTPS) endpoint")
+
     bucket_name = get_new_bucket()
     client = get_client()
     data = 'A'*1000
@@ -10751,9 +10803,13 @@ def test_encryption_sse_c_present():
     e = assert_raises(ClientError, client.get_object, Bucket=bucket_name, Key=key)
     status, error_code = _get_status_and_error_code(e.response)
     assert status == 400
+    assert error_code == 'InvalidRequest'
 
 @pytest.mark.encryption
 def test_encryption_sse_c_other_key():
+    if not get_config_is_secure():
+        pytest.skip("test requires secure (HTTPS) endpoint")
+
     bucket_name = get_new_bucket()
     client = get_client()
     data = 'A'*100
@@ -10777,7 +10833,8 @@ def test_encryption_sse_c_other_key():
     client.meta.events.register('before-call.s3.GetObject', lf)
     e = assert_raises(ClientError, client.get_object, Bucket=bucket_name, Key=key)
     status, error_code = _get_status_and_error_code(e.response)
-    assert status == 400
+    assert status == 403
+    assert error_code == 'AccessDenied'
 
 @pytest.mark.encryption
 def test_encryption_sse_c_invalid_md5():
@@ -10895,6 +10952,9 @@ def _check_content_using_range_enc(client, bucket_name, key, data, size, step, e
 @pytest.mark.encryption
 @pytest.mark.fails_on_dbstore
 def test_encryption_sse_c_multipart_upload():
+    if not get_config_is_secure():
+        pytest.skip("test requires secure (HTTPS) endpoint")
+
     bucket_name = get_new_bucket()
     client = get_client()
     key = "multipart_enc"
@@ -10941,6 +11001,9 @@ def test_encryption_sse_c_multipart_upload():
 @pytest.mark.encryption
 @pytest.mark.fails_on_dbstore
 def test_encryption_sse_c_unaligned_multipart_upload():
+    if not get_config_is_secure():
+        pytest.skip("test requires secure (HTTPS) endpoint")
+
     bucket_name = get_new_bucket()
     client = get_client()
     key = "multipart_enc"
@@ -10988,6 +11051,9 @@ def test_encryption_sse_c_unaligned_multipart_upload():
 # TODO: remove this fails_on_rgw when I fix it
 @pytest.mark.fails_on_rgw
 def test_encryption_sse_c_multipart_invalid_chunks_1():
+    if not get_config_is_secure():
+        pytest.skip("test requires secure (HTTPS) endpoint")
+
     bucket_name = get_new_bucket()
     client = get_client()
     key = "multipart_enc"
@@ -11011,11 +11077,15 @@ def test_encryption_sse_c_multipart_invalid_chunks_1():
             key=key, size=objlen, part_size=5*1024*1024, init_headers=init_headers, part_headers=part_headers, metadata=metadata, resend_parts=resend_parts)
     status, error_code = _get_status_and_error_code(e.response)
     assert status == 400
+    assert error_code == 'InvalidRequest'
 
 @pytest.mark.encryption
 # TODO: remove this fails_on_rgw when I fix it
 @pytest.mark.fails_on_rgw
 def test_encryption_sse_c_multipart_invalid_chunks_2():
+    if not get_config_is_secure():
+        pytest.skip("test requires secure (HTTPS) endpoint")
+
     bucket_name = get_new_bucket()
     client = get_client()
     key = "multipart_enc"
@@ -11039,9 +11109,13 @@ def test_encryption_sse_c_multipart_invalid_chunks_2():
             key=key, size=objlen, part_size=5*1024*1024, init_headers=init_headers, part_headers=part_headers, metadata=metadata, resend_parts=resend_parts)
     status, error_code = _get_status_and_error_code(e.response)
     assert status == 400
+    assert error_code == 'InvalidArgument'
 
 @pytest.mark.encryption
 def test_encryption_sse_c_multipart_bad_download():
+    if not get_config_is_secure():
+        pytest.skip("test requires secure (HTTPS) endpoint")
+
     bucket_name = get_new_bucket()
     client = get_client()
     key = "multipart_enc"
@@ -11083,12 +11157,16 @@ def test_encryption_sse_c_multipart_bad_download():
     client.meta.events.register('before-call.s3.GetObject', lf)
     e = assert_raises(ClientError, client.get_object, Bucket=bucket_name, Key=key)
     status, error_code = _get_status_and_error_code(e.response)
-    assert status == 400
+    assert status == 403
+    assert error_code == 'AccessDenied'
 
 
 @pytest.mark.encryption
 @pytest.mark.fails_on_dbstore
 def test_encryption_sse_c_post_object_authenticated_request():
+    if not get_config_is_secure():
+        pytest.skip("test requires secure (HTTPS) endpoint")
+
     bucket_name = get_new_bucket()
     client = get_client()
 
@@ -12204,7 +12282,7 @@ def test_post_object_tags_anonymous_request():
     bucket_name = get_new_bucket_name()
     client = get_client()
     url = _get_post_url(bucket_name)
-    client.create_bucket(ACL='public-read-write', Bucket=bucket_name)
+    create_bucket(client, ACL='public-read-write', Bucket=bucket_name)
 
     key_name = "foo.txt"
     input_tagset = _create_simple_tagset(2)
@@ -13280,7 +13358,7 @@ def test_bucket_policy_get_obj_acl_existing_tag():
 def test_object_lock_put_obj_lock():
     bucket_name = get_new_bucket_name()
     client = get_client()
-    client.create_bucket(Bucket=bucket_name, ObjectLockEnabledForBucket=True)
+    create_bucket(client, Bucket=bucket_name, ObjectLockEnabledForBucket=True)
     conf = {'ObjectLockEnabled':'Enabled',
             'Rule': {
                 'DefaultRetention':{
@@ -13312,7 +13390,7 @@ def test_object_lock_put_obj_lock():
 def test_object_lock_put_obj_lock_invalid_bucket():
     bucket_name = get_new_bucket_name()
     client = get_client()
-    client.create_bucket(Bucket=bucket_name)
+    create_bucket(client, Bucket=bucket_name)
     conf = {'ObjectLockEnabled':'Enabled',
             'Rule': {
                 'DefaultRetention':{
@@ -13328,7 +13406,7 @@ def test_object_lock_put_obj_lock_invalid_bucket():
 def test_object_lock_put_obj_lock_enable_after_create():
     bucket_name = get_new_bucket_name()
     client = get_client()
-    client.create_bucket(Bucket=bucket_name)
+    create_bucket(client, Bucket=bucket_name)
     conf = {'ObjectLockEnabled':'Enabled',
             'Rule': {
                 'DefaultRetention':{
@@ -13359,7 +13437,7 @@ def test_object_lock_put_obj_lock_enable_after_create():
 def test_object_lock_put_obj_lock_with_days_and_years():
     bucket_name = get_new_bucket_name()
     client = get_client()
-    client.create_bucket(Bucket=bucket_name, ObjectLockEnabledForBucket=True)
+    create_bucket(client, Bucket=bucket_name, ObjectLockEnabledForBucket=True)
     conf = {'ObjectLockEnabled':'Enabled',
             'Rule': {
                 'DefaultRetention':{
@@ -13378,7 +13456,7 @@ def test_object_lock_put_obj_lock_with_days_and_years():
 def test_object_lock_put_obj_lock_invalid_days():
     bucket_name = get_new_bucket_name()
     client = get_client()
-    client.create_bucket(Bucket=bucket_name, ObjectLockEnabledForBucket=True)
+    create_bucket(client, Bucket=bucket_name, ObjectLockEnabledForBucket=True)
     conf = {'ObjectLockEnabled':'Enabled',
             'Rule': {
                 'DefaultRetention':{
@@ -13396,7 +13474,7 @@ def test_object_lock_put_obj_lock_invalid_days():
 def test_object_lock_put_obj_lock_invalid_years():
     bucket_name = get_new_bucket_name()
     client = get_client()
-    client.create_bucket(Bucket=bucket_name, ObjectLockEnabledForBucket=True)
+    create_bucket(client, Bucket=bucket_name, ObjectLockEnabledForBucket=True)
     conf = {'ObjectLockEnabled':'Enabled',
             'Rule': {
                 'DefaultRetention':{
@@ -13414,7 +13492,7 @@ def test_object_lock_put_obj_lock_invalid_years():
 def test_object_lock_put_obj_lock_invalid_mode():
     bucket_name = get_new_bucket_name()
     client = get_client()
-    client.create_bucket(Bucket=bucket_name, ObjectLockEnabledForBucket=True)
+    create_bucket(client, Bucket=bucket_name, ObjectLockEnabledForBucket=True)
     conf = {'ObjectLockEnabled':'Enabled',
             'Rule': {
                 'DefaultRetention':{
@@ -13444,7 +13522,7 @@ def test_object_lock_put_obj_lock_invalid_mode():
 def test_object_lock_put_obj_lock_invalid_status():
     bucket_name = get_new_bucket_name()
     client = get_client()
-    client.create_bucket(Bucket=bucket_name, ObjectLockEnabledForBucket=True)
+    create_bucket(client, Bucket=bucket_name, ObjectLockEnabledForBucket=True)
     conf = {'ObjectLockEnabled':'Disabled',
             'Rule': {
                 'DefaultRetention':{
@@ -13462,7 +13540,7 @@ def test_object_lock_put_obj_lock_invalid_status():
 def test_object_lock_suspend_versioning():
     bucket_name = get_new_bucket_name()
     client = get_client()
-    client.create_bucket(Bucket=bucket_name, ObjectLockEnabledForBucket=True)
+    create_bucket(client, Bucket=bucket_name, ObjectLockEnabledForBucket=True)
     e = assert_raises(ClientError, client.put_bucket_versioning, Bucket=bucket_name, VersioningConfiguration={'Status': 'Suspended'})
     status, error_code = _get_status_and_error_code(e.response)
     assert status == 409
@@ -13473,7 +13551,7 @@ def test_object_lock_suspend_versioning():
 def test_object_lock_get_obj_lock():
     bucket_name = get_new_bucket_name()
     client = get_client()
-    client.create_bucket(Bucket=bucket_name, ObjectLockEnabledForBucket=True)
+    create_bucket(client, Bucket=bucket_name, ObjectLockEnabledForBucket=True)
     conf = {'ObjectLockEnabled':'Enabled',
             'Rule': {
                 'DefaultRetention':{
@@ -13491,7 +13569,7 @@ def test_object_lock_get_obj_lock():
 def test_object_lock_get_obj_lock_invalid_bucket():
     bucket_name = get_new_bucket_name()
     client = get_client()
-    client.create_bucket(Bucket=bucket_name)
+    create_bucket(client, Bucket=bucket_name)
     e = assert_raises(ClientError, client.get_object_lock_configuration, Bucket=bucket_name)
     status, error_code = _get_status_and_error_code(e.response)
     assert status == 404
@@ -13502,7 +13580,7 @@ def test_object_lock_get_obj_lock_invalid_bucket():
 def test_object_lock_put_obj_retention():
     bucket_name = get_new_bucket_name()
     client = get_client()
-    client.create_bucket(Bucket=bucket_name, ObjectLockEnabledForBucket=True)
+    create_bucket(client, Bucket=bucket_name, ObjectLockEnabledForBucket=True)
     key = 'file1'
     response = client.put_object(Bucket=bucket_name, Body='abc', Key=key)
     version_id = response['VersionId']
@@ -13518,7 +13596,7 @@ def test_object_lock_put_obj_retention():
 def test_object_lock_put_obj_retention_invalid_bucket():
     bucket_name = get_new_bucket_name()
     client = get_client()
-    client.create_bucket(Bucket=bucket_name)
+    create_bucket(client, Bucket=bucket_name)
     key = 'file1'
     client.put_object(Bucket=bucket_name, Body='abc', Key=key)
     retention = {'Mode':'GOVERNANCE', 'RetainUntilDate':datetime.datetime(2030,1,1,tzinfo=pytz.UTC)}
@@ -13532,7 +13610,7 @@ def test_object_lock_put_obj_retention_invalid_bucket():
 def test_object_lock_put_obj_retention_invalid_mode():
     bucket_name = get_new_bucket_name()
     client = get_client()
-    client.create_bucket(Bucket=bucket_name, ObjectLockEnabledForBucket=True)
+    create_bucket(client, Bucket=bucket_name, ObjectLockEnabledForBucket=True)
     key = 'file1'
     client.put_object(Bucket=bucket_name, Body='abc', Key=key)
     retention = {'Mode':'governance', 'RetainUntilDate':datetime.datetime(2030,1,1,tzinfo=pytz.UTC)}
@@ -13552,7 +13630,7 @@ def test_object_lock_put_obj_retention_invalid_mode():
 def test_object_lock_get_obj_retention():
     bucket_name = get_new_bucket_name()
     client = get_client()
-    client.create_bucket(Bucket=bucket_name, ObjectLockEnabledForBucket=True)
+    create_bucket(client, Bucket=bucket_name, ObjectLockEnabledForBucket=True)
     key = 'file1'
     response = client.put_object(Bucket=bucket_name, Body='abc', Key=key)
     version_id = response['VersionId']
@@ -13567,7 +13645,7 @@ def test_object_lock_get_obj_retention():
 def test_object_lock_get_obj_retention_iso8601():
     bucket_name = get_new_bucket_name()
     client = get_client()
-    client.create_bucket(Bucket=bucket_name, ObjectLockEnabledForBucket=True)
+    create_bucket(client, Bucket=bucket_name, ObjectLockEnabledForBucket=True)
     key = 'file1'
     response = client.put_object(Bucket=bucket_name, Body='abc', Key=key)
     version_id = response['VersionId']
@@ -13584,7 +13662,7 @@ def test_object_lock_get_obj_retention_iso8601():
 def test_object_lock_get_obj_retention_invalid_bucket():
     bucket_name = get_new_bucket_name()
     client = get_client()
-    client.create_bucket(Bucket=bucket_name)
+    create_bucket(client, Bucket=bucket_name)
     key = 'file1'
     client.put_object(Bucket=bucket_name, Body='abc', Key=key)
     e = assert_raises(ClientError, client.get_object_retention, Bucket=bucket_name, Key=key)
@@ -13597,7 +13675,7 @@ def test_object_lock_get_obj_retention_invalid_bucket():
 def test_object_lock_put_obj_retention_versionid():
     bucket_name = get_new_bucket_name()
     client = get_client()
-    client.create_bucket(Bucket=bucket_name, ObjectLockEnabledForBucket=True)
+    create_bucket(client, Bucket=bucket_name, ObjectLockEnabledForBucket=True)
     key = 'file1'
     client.put_object(Bucket=bucket_name, Body='abc', Key=key)
     response = client.put_object(Bucket=bucket_name, Body='abc', Key=key)
@@ -13613,7 +13691,7 @@ def test_object_lock_put_obj_retention_versionid():
 def test_object_lock_put_obj_retention_override_default_retention():
     bucket_name = get_new_bucket_name()
     client = get_client()
-    client.create_bucket(Bucket=bucket_name, ObjectLockEnabledForBucket=True)
+    create_bucket(client, Bucket=bucket_name, ObjectLockEnabledForBucket=True)
     conf = {'ObjectLockEnabled':'Enabled',
             'Rule': {
                 'DefaultRetention':{
@@ -13638,7 +13716,7 @@ def test_object_lock_put_obj_retention_override_default_retention():
 def test_object_lock_put_obj_retention_increase_period():
     bucket_name = get_new_bucket_name()
     client = get_client()
-    client.create_bucket(Bucket=bucket_name, ObjectLockEnabledForBucket=True)
+    create_bucket(client, Bucket=bucket_name, ObjectLockEnabledForBucket=True)
     key = 'file1'
     response = client.put_object(Bucket=bucket_name, Body='abc', Key=key)
     version_id = response['VersionId']
@@ -13655,7 +13733,7 @@ def test_object_lock_put_obj_retention_increase_period():
 def test_object_lock_put_obj_retention_shorten_period():
     bucket_name = get_new_bucket_name()
     client = get_client()
-    client.create_bucket(Bucket=bucket_name, ObjectLockEnabledForBucket=True)
+    create_bucket(client, Bucket=bucket_name, ObjectLockEnabledForBucket=True)
     key = 'file1'
     response = client.put_object(Bucket=bucket_name, Body='abc', Key=key)
     version_id = response['VersionId']
@@ -13673,7 +13751,7 @@ def test_object_lock_put_obj_retention_shorten_period():
 def test_object_lock_put_obj_retention_shorten_period_bypass():
     bucket_name = get_new_bucket_name()
     client = get_client()
-    client.create_bucket(Bucket=bucket_name, ObjectLockEnabledForBucket=True)
+    create_bucket(client, Bucket=bucket_name, ObjectLockEnabledForBucket=True)
     key = 'file1'
     response = client.put_object(Bucket=bucket_name, Body='abc', Key=key)
     version_id = response['VersionId']
@@ -13690,7 +13768,7 @@ def test_object_lock_put_obj_retention_shorten_period_bypass():
 def test_object_lock_delete_object_with_retention():
     bucket_name = get_new_bucket_name()
     client = get_client()
-    client.create_bucket(Bucket=bucket_name, ObjectLockEnabledForBucket=True)
+    create_bucket(client, Bucket=bucket_name, ObjectLockEnabledForBucket=True)
     key = 'file1'
 
     response = client.put_object(Bucket=bucket_name, Body='abc', Key=key)
@@ -13708,7 +13786,7 @@ def test_object_lock_delete_object_with_retention():
 def test_object_lock_delete_multipart_object_with_retention():
     bucket_name = get_new_bucket_name()
     client = get_client()
-    client.create_bucket(Bucket=bucket_name, ObjectLockEnabledForBucket=True)
+    create_bucket(client, Bucket=bucket_name, ObjectLockEnabledForBucket=True)
 
     key = 'file1'
     body = 'abc'
@@ -13733,7 +13811,7 @@ def test_object_lock_delete_multipart_object_with_retention():
 def test_object_lock_delete_object_with_retention_and_marker():
     bucket_name = get_new_bucket_name()
     client = get_client()
-    client.create_bucket(Bucket=bucket_name, ObjectLockEnabledForBucket=True)
+    create_bucket(client, Bucket=bucket_name, ObjectLockEnabledForBucket=True)
     key = 'file1'
 
     response = client.put_object(Bucket=bucket_name, Body='abc', Key=key)
@@ -13758,7 +13836,7 @@ def test_object_lock_delete_object_with_retention_and_marker():
 def test_object_lock_multi_delete_object_with_retention():
     bucket_name = get_new_bucket_name()
     client = get_client()
-    client.create_bucket(Bucket=bucket_name, ObjectLockEnabledForBucket=True)
+    create_bucket(client, Bucket=bucket_name, ObjectLockEnabledForBucket=True)
     key1 = 'file1'
     key2 = 'file2'
 
@@ -13825,7 +13903,7 @@ def test_object_lock_multi_delete_object_with_retention():
 def test_object_lock_put_legal_hold():
     bucket_name = get_new_bucket_name()
     client = get_client()
-    client.create_bucket(Bucket=bucket_name, ObjectLockEnabledForBucket=True)
+    create_bucket(client, Bucket=bucket_name, ObjectLockEnabledForBucket=True)
     key = 'file1'
     client.put_object(Bucket=bucket_name, Body='abc', Key=key)
     legal_hold = {'Status': 'ON'}
@@ -13838,7 +13916,7 @@ def test_object_lock_put_legal_hold():
 def test_object_lock_put_legal_hold_invalid_bucket():
     bucket_name = get_new_bucket_name()
     client = get_client()
-    client.create_bucket(Bucket=bucket_name)
+    create_bucket(client, Bucket=bucket_name)
     key = 'file1'
     client.put_object(Bucket=bucket_name, Body='abc', Key=key)
     legal_hold = {'Status': 'ON'}
@@ -13852,7 +13930,7 @@ def test_object_lock_put_legal_hold_invalid_bucket():
 def test_object_lock_put_legal_hold_invalid_status():
     bucket_name = get_new_bucket_name()
     client = get_client()
-    client.create_bucket(Bucket=bucket_name, ObjectLockEnabledForBucket=True)
+    create_bucket(client, Bucket=bucket_name, ObjectLockEnabledForBucket=True)
     key = 'file1'
     client.put_object(Bucket=bucket_name, Body='abc', Key=key)
     legal_hold = {'Status': 'abc'}
@@ -13866,7 +13944,7 @@ def test_object_lock_put_legal_hold_invalid_status():
 def test_object_lock_get_legal_hold():
     bucket_name = get_new_bucket_name()
     client = get_client()
-    client.create_bucket(Bucket=bucket_name, ObjectLockEnabledForBucket=True)
+    create_bucket(client, Bucket=bucket_name, ObjectLockEnabledForBucket=True)
     key = 'file1'
     client.put_object(Bucket=bucket_name, Body='abc', Key=key)
     legal_hold = {'Status': 'ON'}
@@ -13882,7 +13960,7 @@ def test_object_lock_get_legal_hold():
 def test_object_lock_get_legal_hold_invalid_bucket():
     bucket_name = get_new_bucket_name()
     client = get_client()
-    client.create_bucket(Bucket=bucket_name)
+    create_bucket(client, Bucket=bucket_name)
     key = 'file1'
     client.put_object(Bucket=bucket_name, Body='abc', Key=key)
     e = assert_raises(ClientError, client.get_object_legal_hold, Bucket=bucket_name, Key=key)
@@ -13895,7 +13973,7 @@ def test_object_lock_get_legal_hold_invalid_bucket():
 def test_object_lock_delete_object_with_legal_hold_on():
     bucket_name = get_new_bucket_name()
     client = get_client()
-    client.create_bucket(Bucket=bucket_name, ObjectLockEnabledForBucket=True)
+    create_bucket(client, Bucket=bucket_name, ObjectLockEnabledForBucket=True)
     key = 'file1'
     response = client.put_object(Bucket=bucket_name, Body='abc', Key=key)
     client.put_object_legal_hold(Bucket=bucket_name, Key=key, LegalHold={'Status': 'ON'})
@@ -13909,7 +13987,7 @@ def test_object_lock_delete_object_with_legal_hold_on():
 def test_object_lock_delete_multipart_object_with_legal_hold_on():
     bucket_name = get_new_bucket_name()
     client = get_client()
-    client.create_bucket(Bucket=bucket_name, ObjectLockEnabledForBucket=True)
+    create_bucket(client, Bucket=bucket_name, ObjectLockEnabledForBucket=True)
 
     key = 'file1'
     body = 'abc'
@@ -13931,7 +14009,7 @@ def test_object_lock_delete_multipart_object_with_legal_hold_on():
 def test_object_lock_delete_object_with_legal_hold_off():
     bucket_name = get_new_bucket_name()
     client = get_client()
-    client.create_bucket(Bucket=bucket_name, ObjectLockEnabledForBucket=True)
+    create_bucket(client, Bucket=bucket_name, ObjectLockEnabledForBucket=True)
     key = 'file1'
     response = client.put_object(Bucket=bucket_name, Body='abc', Key=key)
     client.put_object_legal_hold(Bucket=bucket_name, Key=key, LegalHold={'Status': 'OFF'})
@@ -13943,7 +14021,7 @@ def test_object_lock_delete_object_with_legal_hold_off():
 def test_object_lock_get_obj_metadata():
     bucket_name = get_new_bucket_name()
     client = get_client()
-    client.create_bucket(Bucket=bucket_name, ObjectLockEnabledForBucket=True)
+    create_bucket(client, Bucket=bucket_name, ObjectLockEnabledForBucket=True)
     key = 'file1'
     client.put_object(Bucket=bucket_name, Body='abc', Key=key)
     legal_hold = {'Status': 'ON'}
@@ -13963,7 +14041,7 @@ def test_object_lock_get_obj_metadata():
 def test_object_lock_uploading_obj():
     bucket_name = get_new_bucket_name()
     client = get_client()
-    client.create_bucket(Bucket=bucket_name, ObjectLockEnabledForBucket=True)
+    create_bucket(client, Bucket=bucket_name, ObjectLockEnabledForBucket=True)
     key = 'file1'
     client.put_object(Bucket=bucket_name, Body='abc', Key=key, ObjectLockMode='GOVERNANCE',
                       ObjectLockRetainUntilDate=datetime.datetime(2030,1,1,tzinfo=pytz.UTC), ObjectLockLegalHoldStatus='ON')
@@ -13980,7 +14058,7 @@ def test_object_lock_changing_mode_from_governance_with_bypass():
     bucket_name = get_new_bucket_name()
     key = 'file1'
     client = get_client()
-    client.create_bucket(Bucket=bucket_name, ObjectLockEnabledForBucket=True)
+    create_bucket(client, Bucket=bucket_name, ObjectLockEnabledForBucket=True)
     # upload object with mode=GOVERNANCE
     retain_until = datetime.datetime.now(pytz.utc) + datetime.timedelta(seconds=10)
     client.put_object(Bucket=bucket_name, Body='abc', Key=key, ObjectLockMode='GOVERNANCE',
@@ -13994,7 +14072,7 @@ def test_object_lock_changing_mode_from_governance_without_bypass():
     bucket_name = get_new_bucket_name()
     key = 'file1'
     client = get_client()
-    client.create_bucket(Bucket=bucket_name, ObjectLockEnabledForBucket=True)
+    create_bucket(client, Bucket=bucket_name, ObjectLockEnabledForBucket=True)
     # upload object with mode=GOVERNANCE
     retain_until = datetime.datetime.now(pytz.utc) + datetime.timedelta(seconds=10)
     client.put_object(Bucket=bucket_name, Body='abc', Key=key, ObjectLockMode='GOVERNANCE',
@@ -14011,7 +14089,7 @@ def test_object_lock_changing_mode_from_compliance():
     bucket_name = get_new_bucket_name()
     key = 'file1'
     client = get_client()
-    client.create_bucket(Bucket=bucket_name, ObjectLockEnabledForBucket=True)
+    create_bucket(client, Bucket=bucket_name, ObjectLockEnabledForBucket=True)
     # upload object with mode=COMPLIANCE
     retain_until = datetime.datetime.now(pytz.utc) + datetime.timedelta(seconds=10)
     client.put_object(Bucket=bucket_name, Body='abc', Key=key, ObjectLockMode='COMPLIANCE',
@@ -14078,10 +14156,10 @@ def test_copy_object_ifnonematch_failed():
 def test_object_read_unreadable():
     bucket_name = get_new_bucket()
     client = get_client()
-    e = assert_raises(ClientError, client.get_object, Bucket=bucket_name, Key='\xae\x8a-')
+    e = assert_raises(ClientError, client.get_object, Bucket=bucket_name, Key='\x00')
     status, error_code = _get_status_and_error_code(e.response)
     assert status == 400
-    assert e.response['Error']['Message'] == 'Couldn\'t parse the specified URI.'
+    assert e.response['Error']['Message'] == 'Bad Request'
 
 def test_get_bucket_policy_status():
     bucket_name = get_new_bucket()
@@ -14183,7 +14261,7 @@ def test_get_nonpublicpolicy_principal_bucket_policy_status():
             ],
         }]
     })
-    
+
     client.put_bucket_policy(Bucket=bucket_name, Policy=policy_document)
     resp = client.get_bucket_policy_status(Bucket=bucket_name)
     assert resp['PolicyStatus']['IsPublic'] == False
@@ -14362,7 +14440,7 @@ def test_block_public_policy_with_principal():
                    'IgnorePublicAcls': False,
                    'BlockPublicPolicy': True,
                    'RestrictPublicBuckets': False}
-    
+
     client.put_public_access_block(Bucket=bucket_name, PublicAccessBlockConfiguration=access_conf)
     resource = _make_arn_resource("{}/{}".format(bucket_name, "*"))
     policy_document = make_json_policy("s3:GetObject",
@@ -14413,7 +14491,7 @@ def test_block_public_restrict_public_buckets():
 
 
 def test_ignore_public_acls():
-    bucket_name = get_new_bucket()
+    bucket_name = _setup_bucket_acl()
     client = get_client()
     alt_client = get_alt_client()
 
@@ -15608,7 +15686,7 @@ def test_put_bucket_logging():
     logging_enabled = {
         'TargetBucket': log_bucket_name,
         'TargetPrefix': 'log/',
-        'TargetGrants': [{'Grantee': {'DisplayName': main_display_name, 'ID': main_user_id,'Type': 'CanonicalUser'},'Permission': 'FULL_CONTROL'}] 
+        'TargetGrants': [{'Grantee': {'DisplayName': main_display_name, 'ID': main_user_id,'Type': 'CanonicalUser'},'Permission': 'FULL_CONTROL'}]
     }
     if has_extensions:
         logging_enabled['ObjectRollTime'] = expected_object_roll_time

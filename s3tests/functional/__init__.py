@@ -15,6 +15,8 @@ import itertools
 import urllib3
 import re
 
+DEFAULT_REGION = 'us-east-1'
+
 config = munch.Munch
 
 # this will be assigned by setup()
@@ -47,6 +49,12 @@ def choose_bucket_prefix(template, max_len=30):
             template=template,
             ),
         )
+
+def create_bucket(client, **params):
+    if 'CreateBucketConfiguration' not in params and client.meta.region_name not in ('', DEFAULT_REGION):
+        params['CreateBucketConfiguration'] = {'LocationConstraint': client.meta.region_name}
+
+    return client.create_bucket(**params)
 
 def get_buckets_list(client=None, prefix=None):
     if client == None:
@@ -100,10 +108,13 @@ def nuke_bucket(client, bucket):
     max_retain_date = None
 
     # list and delete objects in batches
+
     for objects in list_versions(client, bucket, batch_size):
         delete = client.delete_objects(Bucket=bucket,
                 Delete={'Objects': objects, 'Quiet': True},
-                BypassGovernanceRetention=True)
+                # NOTE: RCS does not support BypassGovernanceRetention header
+                # BypassGovernanceRetention=true
+        )
 
         # check for object locks on 403 AccessDenied errors
         for err in delete.get('Errors', []):
@@ -191,8 +202,6 @@ def configure():
         raise RuntimeError('Your config file is missing the "s3 main" section!')
     if not cfg.has_section("s3 alt"):
         raise RuntimeError('Your config file is missing the "s3 alt" section!')
-    if not cfg.has_section("s3 tenant"):
-        raise RuntimeError('Your config file is missing the "s3 tenant" section!')
 
     global prefix
 
@@ -215,12 +224,14 @@ def configure():
     if not config.default_ssl_verify:
         urllib3.disable_warnings()
 
+    config.default_api_name = defaults.get("api_name", "")
+
     # vars from the main section
     config.main_access_key = cfg.get('s3 main',"access_key")
     config.main_secret_key = cfg.get('s3 main',"secret_key")
-    config.main_display_name = cfg.get('s3 main',"display_name")
+    config.main_display_name = cfg.get('s3 main', "display_name", fallback=None)
     config.main_user_id = cfg.get('s3 main',"user_id")
-    config.main_email = cfg.get('s3 main',"email")
+    config.main_email = cfg.get('s3 main', "email", fallback=None)
     config.main_account_id = cfg.get('s3 main', 'account_id', fallback=None)
     try:
         config.main_kms_keyid = cfg.get('s3 main',"kms_keyid")
@@ -261,36 +272,10 @@ def configure():
 
     config.alt_access_key = cfg.get('s3 alt',"access_key")
     config.alt_secret_key = cfg.get('s3 alt',"secret_key")
-    config.alt_display_name = cfg.get('s3 alt',"display_name")
+    config.alt_display_name = cfg.get('s3 alt', "display_name", fallback=None)
     config.alt_user_id = cfg.get('s3 alt',"user_id")
-    config.alt_email = cfg.get('s3 alt',"email")
+    config.alt_email = cfg.get('s3 alt', "email", fallback=None)
     config.alt_account_id = cfg.get('s3 alt', 'account_id', fallback=None)
-
-    config.tenant_access_key = cfg.get('s3 tenant',"access_key")
-    config.tenant_secret_key = cfg.get('s3 tenant',"secret_key")
-    config.tenant_display_name = cfg.get('s3 tenant',"display_name")
-    config.tenant_user_id = cfg.get('s3 tenant',"user_id")
-    config.tenant_email = cfg.get('s3 tenant',"email")
-    config.tenant_account_id = cfg.get('s3 tenant', 'account_id', fallback=None)
-    config.tenant_name = cfg.get('s3 tenant',"tenant")
-
-    config.iam_access_key = cfg.get('iam',"access_key")
-    config.iam_secret_key = cfg.get('iam',"secret_key")
-    config.iam_display_name = cfg.get('iam',"display_name")
-    config.iam_user_id = cfg.get('iam',"user_id")
-    config.iam_email = cfg.get('iam',"email")
-
-    config.iam_root_access_key = cfg.get('iam root',"access_key")
-    config.iam_root_secret_key = cfg.get('iam root',"secret_key")
-    config.iam_root_user_id = cfg.get('iam root',"user_id")
-    config.iam_root_email = cfg.get('iam root',"email")
-    config.iam_root_account_id = cfg.get('iam root', 'account_id', fallback=None)
-
-    config.iam_alt_root_access_key = cfg.get('iam alt root',"access_key")
-    config.iam_alt_root_secret_key = cfg.get('iam alt root',"secret_key")
-    config.iam_alt_root_user_id = cfg.get('iam alt root',"user_id")
-    config.iam_alt_root_email = cfg.get('iam alt root',"email")
-    config.iam_alt_root_account_id = cfg.get('iam alt root', 'account_id', fallback=None)
 
     # vars from the fixtures section
     template = cfg.get('fixtures', "bucket prefix", fallback='test-{random}-')
@@ -307,17 +292,13 @@ def configure():
 
 def setup():
     alt_client = get_alt_client()
-    tenant_client = get_tenant_client()
     nuke_prefixed_buckets(prefix=prefix)
     nuke_prefixed_buckets(prefix=prefix, client=alt_client)
-    nuke_prefixed_buckets(prefix=prefix, client=tenant_client)
 
 def teardown():
     alt_client = get_alt_client()
-    tenant_client = get_tenant_client()
     nuke_prefixed_buckets(prefix=prefix)
     nuke_prefixed_buckets(prefix=prefix, client=alt_client)
-    nuke_prefixed_buckets(prefix=prefix, client=tenant_client)
     try:
         iam_client = get_iam_client()
         list_roles_resp = iam_client.list_roles()
@@ -431,6 +412,7 @@ def get_client(client_config=None):
         client_config = Config(signature_version='s3v4')
 
     client = boto3.client(service_name='s3',
+                        region_name=config.default_api_name,
                         aws_access_key_id=config.main_access_key,
                         aws_secret_access_key=config.main_secret_key,
                         endpoint_url=config.default_endpoint,
@@ -441,6 +423,7 @@ def get_client(client_config=None):
 
 def get_v2_client():
     client = boto3.client(service_name='s3',
+                        region_name=config.default_api_name,
                         aws_access_key_id=config.main_access_key,
                         aws_secret_access_key=config.main_secret_key,
                         endpoint_url=config.default_endpoint,
@@ -480,6 +463,7 @@ def get_iam_s3client(**kwargs):
     kwargs.setdefault('config', Config(signature_version='s3v4'))
 
     client = boto3.client(service_name='s3',
+                          region_name=config.default_api_name,
                           endpoint_url=config.default_endpoint,
                           use_ssl=config.default_is_secure,
                           verify=config.default_ssl_verify,
@@ -525,6 +509,7 @@ def get_alt_client(client_config=None):
         client_config = Config(signature_version='s3v4')
 
     client = boto3.client(service_name='s3',
+                        region_name=config.default_api_name,
                         aws_access_key_id=config.alt_access_key,
                         aws_secret_access_key=config.alt_secret_key,
                         endpoint_url=config.default_endpoint,
@@ -538,6 +523,7 @@ def get_cloud_client(client_config=None):
         client_config = Config(signature_version='s3v4')
 
     client = boto3.client(service_name='s3',
+                        region_name=config.default_api_name,
                         aws_access_key_id=config.cloud_access_key,
                         aws_secret_access_key=config.cloud_secret_key,
                         endpoint_url=config.cloud_endpoint,
@@ -550,6 +536,7 @@ def get_tenant_client(client_config=None):
         client_config = Config(signature_version='s3v4')
 
     client = boto3.client(service_name='s3',
+                        region_name=config.default_api_name,
                         aws_access_key_id=config.tenant_access_key,
                         aws_secret_access_key=config.tenant_secret_key,
                         endpoint_url=config.default_endpoint,
@@ -561,6 +548,7 @@ def get_tenant_client(client_config=None):
 def get_v2_tenant_client():
     client_config = Config(signature_version='s3')
     client = boto3.client(service_name='s3',
+                          region_name=config.default_api_name,
                           aws_access_key_id=config.tenant_access_key,
                           aws_secret_access_key=config.tenant_secret_key,
                           endpoint_url=config.default_endpoint,
@@ -603,6 +591,7 @@ def get_unauthenticated_client():
 
 def get_bad_auth_client(aws_access_key_id='badauth'):
     client = boto3.client(service_name='s3',
+                        region_name=config.default_api_name,
                         aws_access_key_id=aws_access_key_id,
                         aws_secret_access_key='roflmao',
                         endpoint_url=config.default_endpoint,
@@ -616,6 +605,7 @@ def get_svc_client(client_config=None, svc='s3'):
         client_config = Config(signature_version='s3v4')
 
     client = boto3.client(service_name=svc,
+                        region_name=config.default_api_name,
                         aws_access_key_id=config.main_access_key,
                         aws_secret_access_key=config.main_secret_key,
                         endpoint_url=config.default_endpoint,
@@ -671,7 +661,7 @@ def get_new_bucket(client=None, name=None):
     if name is None:
         name = get_new_bucket_name()
 
-    client.create_bucket(Bucket=name)
+    create_bucket(client, Bucket=name)
     return name
 
 def get_parameter_name():

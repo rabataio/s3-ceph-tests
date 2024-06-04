@@ -13,3 +13,11 @@
 /venv
 
 config.yaml
+
+.idea
+.DS_Store
+build
+.tox
+.env
+*.s3tests.conf
+selection.txt
