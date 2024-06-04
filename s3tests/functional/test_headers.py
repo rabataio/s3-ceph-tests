@@ -434,7 +434,7 @@ def test_object_create_bad_authorization_invalid_aws4():
     e = assert_raises(boto.exception.S3ResponseError, key.set_contents_from_string, 'bar')
     assert e.status == 400
     assert e.reason.lower() == 'bad request' # some proxies vary the case
-    assert e.error_code in ('AuthorizationHeaderMalformed', 'InvalidArgument')
+    assert e.error_code == 'AuthorizationHeaderMalformed'
 
 
 @pytest.mark.auth_aws4
@@ -474,7 +474,7 @@ def test_object_create_bad_amz_date_invalid_aws4():
     e = assert_raises(boto.exception.S3ResponseError, key.set_contents_from_string, 'bar')
     assert e.status == 403
     assert e.reason == 'Forbidden'
-    assert e.error_code in ('AccessDenied', 'SignatureDoesNotMatch')
+    assert e.error_code == 'AccessDenied'
 
 
 @pytest.mark.auth_aws4
@@ -492,7 +492,7 @@ def test_object_create_bad_amz_date_empty_aws4():
     e = assert_raises(boto.exception.S3ResponseError, key.set_contents_from_string, 'bar')
     assert e.status == 403
     assert e.reason == 'Forbidden'
-    assert e.error_code in ('AccessDenied', 'SignatureDoesNotMatch')
+    assert e.error_code == 'AccessDenied'
 
 
 @pytest.mark.auth_aws4
@@ -510,7 +510,7 @@ def test_object_create_bad_amz_date_none_aws4():
     e = assert_raises(boto.exception.S3ResponseError, key.set_contents_from_string, 'bar')
     assert e.status == 403
     assert e.reason == 'Forbidden'
-    assert e.error_code in ('AccessDenied', 'SignatureDoesNotMatch')
+    assert e.error_code == 'AccessDenied'
 
 
 @pytest.mark.auth_aws4
@@ -528,7 +528,7 @@ def test_object_create_bad_amz_date_before_today_aws4():
     e = assert_raises(boto.exception.S3ResponseError, key.set_contents_from_string, 'bar')
     assert e.status == 403
     assert e.reason == 'Forbidden'
-    assert e.error_code in ('RequestTimeTooSkewed', 'SignatureDoesNotMatch')
+    assert e.error_code == 'RequestTimeTooSkewed'
 
 
 @pytest.mark.auth_aws4
@@ -546,7 +546,7 @@ def test_object_create_bad_amz_date_after_today_aws4():
     e = assert_raises(boto.exception.S3ResponseError, key.set_contents_from_string, 'bar')
     assert e.status == 403
     assert e.reason == 'Forbidden'
-    assert e.error_code in ('RequestTimeTooSkewed', 'SignatureDoesNotMatch')
+    assert e.error_code == 'RequestTimeTooSkewed'
 
 
 @pytest.mark.auth_aws4
@@ -583,7 +583,7 @@ def test_object_create_bad_amz_date_after_end_aws4():
     e = assert_raises(boto.exception.S3ResponseError, key.set_contents_from_string, 'bar')
     assert e.status == 403
     assert e.reason == 'Forbidden'
-    assert e.error_code in ('RequestTimeTooSkewed', 'SignatureDoesNotMatch')
+    assert e.error_code == 'RequestTimeTooSkewed'
 
 
 @pytest.mark.auth_aws4
@@ -686,7 +686,7 @@ def test_bucket_create_bad_amz_date_invalid_aws4():
 
     assert e.status == 403
     assert e.reason == 'Forbidden'
-    assert e.error_code in ('AccessDenied', 'SignatureDoesNotMatch')
+    assert e.error_code == 'AccessDenied'
 
 
 @pytest.mark.auth_aws4
@@ -704,7 +704,7 @@ def test_bucket_create_bad_amz_date_empty_aws4():
 
     assert e.status == 403
     assert e.reason == 'Forbidden'
-    assert e.error_code in ('AccessDenied', 'SignatureDoesNotMatch')
+    assert e.error_code == 'AccessDenied'
 
 @pytest.mark.auth_aws4
 def test_bucket_create_bad_date_none_aws4():
@@ -721,7 +721,7 @@ def test_bucket_create_bad_amz_date_none_aws4():
 
     assert e.status == 403
     assert e.reason == 'Forbidden'
-    assert e.error_code in ('AccessDenied', 'SignatureDoesNotMatch')
+    assert e.error_code == 'AccessDenied'
 
 
 @pytest.mark.auth_aws4
@@ -739,7 +739,7 @@ def test_bucket_create_bad_amz_date_before_today_aws4():
 
     assert e.status == 403
     assert e.reason == 'Forbidden'
-    assert e.error_code in ('RequestTimeTooSkewed', 'SignatureDoesNotMatch')
+    assert e.error_code == 'RequestTimeTooSkewed'
 
 
 @pytest.mark.auth_aws4
@@ -757,7 +757,7 @@ def test_bucket_create_bad_amz_date_after_today_aws4():
 
     assert e.status == 403
     assert e.reason == 'Forbidden'
-    assert e.error_code in ('RequestTimeTooSkewed', 'SignatureDoesNotMatch')
+    assert e.error_code == 'RequestTimeTooSkewed'
 
 
 @pytest.mark.auth_aws4
