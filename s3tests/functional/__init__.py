@@ -26,6 +26,8 @@ calling_formats = dict(
     vhost=boto.s3.connection.VHostCallingFormat(),
     )
 
+DEFAULT_REGION = 'us-east-1'
+
 def get_prefix():
     assert prefix is not None
     return prefix
@@ -65,7 +67,6 @@ def nuke_prefixed_buckets_on_conn(prefix, name, conn):
         ))
 
     for bucket in conn.get_all_buckets():
-        print('prefix=',prefix)
         if bucket.name.startswith(prefix):
             print('Cleaning bucket {bucket}'.format(bucket=bucket))
             success = False
@@ -344,6 +345,8 @@ def setup():
                 calling_format=conf.calling_format,
                 )
 
+            conn.auth_region_name = cfg.get(section, 'api_name', fallback='us-east-1')
+
             temp_targetConn = TargetConnection(conf, conn)
             targets[name].add(k, temp_targetConn)
 
@@ -414,7 +417,14 @@ def get_new_bucket(target=None, name=None, headers=None):
     # the only way for this to fail with a pre-existing bucket is if
     # someone raced us between setup nuke_prefixed_buckets and here;
     # ignore that as astronomically unlikely
-    bucket = connection.create_bucket(name, location=target.conf.api_name, headers=headers)
+    params = {
+        'bucket_name': name,
+        'headers': headers,
+    }
+    if target.conf.api_name not in ('',  DEFAULT_REGION):
+        params['location'] = target.conf.api_name
+
+    bucket = connection.create_bucket(**params)
     return bucket
 
 def _make_request(method, bucket, key, body=None, authenticated=False, response_headers=None, request_headers=None, expires_in=100000, path_style=True, timeout=None):
