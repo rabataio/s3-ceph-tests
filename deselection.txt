@@ -271,6 +271,10 @@ s3tests_boto3/functional/test_s3.py::test_sse_s3_encrypted_upload_1b
 s3tests_boto3/functional/test_s3.py::test_sse_s3_encrypted_upload_1kb
 s3tests_boto3/functional/test_s3.py::test_sse_s3_encrypted_upload_1mb
 s3tests_boto3/functional/test_s3.py::test_sse_s3_encrypted_upload_8mb
+s3tests_boto3/functional/test_s3.py::test_put_obj_enc_conflict_c_s3
+s3tests_boto3/functional/test_s3.py::test_put_obj_enc_conflict_c_kms
+s3tests_boto3/functional/test_s3.py::test_put_obj_enc_conflict_s3_kms
+s3tests_boto3/functional/test_s3.py::test_put_obj_enc_conflict_bad_enc_kms
 
 # NotImplemented - Encryption SSE-C
 s3tests/functional/test_s3.py::test_encryption_sse_c_multipart_invalid_chunks_1
