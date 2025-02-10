@@ -82,8 +82,8 @@ from . import (
     nuke_prefixed_buckets,
     configured_storage_classes,
     get_lc_debug_interval,
-    )
-
+    DEFAULT_REGION,
+)
 
 def _bucket_is_empty(bucket):
     is_empty = True
@@ -1578,8 +1578,13 @@ def _ev_add_te_header(request, **kwargs):
     request.headers.add_header('Transfer-Encoding', 'chunked')
 
 def test_object_write_with_chunked_transfer_encoding():
-    bucket_name = get_new_bucket()
     client = get_client()
+
+    # NOTE: When https enabled, boto use s3v4 trailing auth with aws-chunked auth with Transfer-Encoding: chunked.
+    if client.meta.endpoint_url.startswith('https://'):
+        pytest.skip("not implemented Transfer-Encoding header could be tested only on not secure endpoint")
+
+    bucket_name = get_new_bucket()
 
     client.meta.events.register_first('before-sign.*.*', _ev_add_te_header)
     e = assert_raises(ClientError, client.put_object, Bucket=bucket_name, Key='foo', Body='bar')
@@ -3248,7 +3253,34 @@ def _setup_bucket_acl(bucket_acl=None):
     """
     bucket_name = get_new_bucket_name()
     client = get_client()
-    client.create_bucket(ACL=bucket_acl, Bucket=bucket_name)
+
+    try:
+        client.create_bucket(Bucket=bucket_name, ObjectOwnership='ObjectWriter')
+        client.put_public_access_block(
+            Bucket=bucket_name,
+            PublicAccessBlockConfiguration={
+                'BlockPublicAcls': False,
+                'IgnorePublicAcls': False,
+                'BlockPublicPolicy': False,
+                'RestrictPublicBuckets': False,
+            },
+        )
+
+        if bucket_acl is not None:
+            client.put_bucket_acl(
+                Bucket=bucket_name,
+                ACL=bucket_acl,
+            )
+    except:
+        # NOTE: Skip error until we don't implement PutPublicAccessBlock API.
+
+        params = {
+            'Bucket': bucket_name
+        }
+        if bucket_acl is not None:
+            params['ACL'] = bucket_acl
+
+        client.create_bucket(**params)
 
     return bucket_name
 
@@ -3510,9 +3542,8 @@ def test_object_anon_put():
 
 def test_object_anon_put_write_access():
     bucket_name = _setup_bucket_acl('public-read-write')
-    client = get_client()
-    client.put_object(Bucket=bucket_name, Key='foo')
-
+    # NOTE: put_object call is removed here, because AWS prevent overwrite when requester is not bucket owner or
+    # owner of existing object.
     unauthenticated_client = get_unauthenticated_client()
 
     response = unauthenticated_client.put_object(Bucket=bucket_name, Key='foo', Body='foo')
@@ -3749,7 +3780,7 @@ def test_bucket_get_location():
     client.create_bucket(Bucket=bucket_name, CreateBucketConfiguration={'LocationConstraint': location_constraint})
 
     response = client.get_bucket_location(Bucket=bucket_name)
-    if location_constraint == "":
+    if location_constraint in {'', DEFAULT_REGION}:
         location_constraint = None
     assert response['LocationConstraint'] == location_constraint
 
@@ -3770,14 +3801,36 @@ def test_bucket_create_exists_nonowner():
 
 @pytest.mark.fails_on_dbstore
 def test_bucket_recreate_overwrite_acl():
-    bucket_name = get_new_bucket_name()
     client = get_client()
+    if client.meta.region_name != DEFAULT_REGION:
+        pytest.skip('recreate overwrite acl only works in default region')
 
-    client.create_bucket(Bucket=bucket_name, ACL='public-read')
-    e = assert_raises(ClientError, client.create_bucket, Bucket=bucket_name)
-    status, error_code = _get_status_and_error_code(e.response)
-    assert status == 409
-    assert error_code == 'BucketAlreadyExists'
+    bucket_name = _setup_bucket_acl('public-read')
+
+    client.create_bucket(Bucket=bucket_name)
+
+    response = client.get_bucket_acl(Bucket=bucket_name)
+
+    display_name = get_main_display_name()
+    user_id = get_main_user_id()
+
+    assert response['Owner'].get('DisplayName') == display_name
+    assert response['Owner'].get('ID') == user_id
+
+    grants = response['Grants']
+    check_grants(
+        grants,
+        [
+            dict(
+                Permission='FULL_CONTROL',
+                ID=user_id,
+                DisplayName=display_name,
+                URI=None,
+                EmailAddress=None,
+                Type='CanonicalUser',
+            ),
+        ],
+    )
 
 @pytest.mark.fails_on_dbstore
 def test_bucket_recreate_new_acl():
@@ -3829,8 +3882,8 @@ def test_bucket_acl_default():
     display_name = get_main_display_name()
     user_id = get_main_user_id()
 
-    assert response['Owner']['DisplayName'] == display_name
-    assert response['Owner']['ID'] == user_id
+    assert response['Owner'].get('DisplayName') == display_name
+    assert response['Owner'].get('ID') == user_id
 
     grants = response['Grants']
     check_grants(
@@ -3862,20 +3915,20 @@ def test_bucket_acl_canned_during_create():
         grants,
         [
             dict(
-                Permission='READ',
-                ID=None,
-                DisplayName=None,
-                URI='http://acs.amazonaws.com/groups/global/AllUsers',
-                EmailAddress=None,
-                Type='Group',
-                ),
-            dict(
                 Permission='FULL_CONTROL',
                 ID=user_id,
                 DisplayName=display_name,
                 URI=None,
                 EmailAddress=None,
                 Type='CanonicalUser',
+            ),
+            dict(
+                Permission='READ',
+                ID=None,
+                DisplayName=None,
+                URI='http://acs.amazonaws.com/groups/global/AllUsers',
+                EmailAddress=None,
+                Type='Group',
                 ),
             ],
         )
@@ -3894,20 +3947,20 @@ def test_bucket_acl_canned():
         grants,
         [
             dict(
-                Permission='READ',
-                ID=None,
-                DisplayName=None,
-                URI='http://acs.amazonaws.com/groups/global/AllUsers',
-                EmailAddress=None,
-                Type='Group',
-                ),
-            dict(
                 Permission='FULL_CONTROL',
                 ID=user_id,
                 DisplayName=display_name,
                 URI=None,
                 EmailAddress=None,
                 Type='CanonicalUser',
+            ),
+            dict(
+                Permission='READ',
+                ID=None,
+                DisplayName=None,
+                URI='http://acs.amazonaws.com/groups/global/AllUsers',
+                EmailAddress=None,
+                Type='Group',
                 ),
             ],
         )
@@ -3943,6 +3996,14 @@ def test_bucket_acl_canned_publicreadwrite():
         grants,
         [
             dict(
+                Permission='FULL_CONTROL',
+                ID=user_id,
+                DisplayName=display_name,
+                URI=None,
+                EmailAddress=None,
+                Type='CanonicalUser',
+            ),
+            dict(
                 Permission='READ',
                 ID=None,
                 DisplayName=None,
@@ -3957,14 +4018,6 @@ def test_bucket_acl_canned_publicreadwrite():
                 URI='http://acs.amazonaws.com/groups/global/AllUsers',
                 EmailAddress=None,
                 Type='Group',
-                ),
-            dict(
-                Permission='FULL_CONTROL',
-                ID=user_id,
-                DisplayName=display_name,
-                URI=None,
-                EmailAddress=None,
-                Type='CanonicalUser',
                 ),
             ],
         )
@@ -3983,14 +4036,6 @@ def test_bucket_acl_canned_authenticatedread():
         grants,
         [
             dict(
-                Permission='READ',
-                ID=None,
-                DisplayName=None,
-                URI='http://acs.amazonaws.com/groups/global/AuthenticatedUsers',
-                EmailAddress=None,
-                Type='Group',
-                ),
-            dict(
                 Permission='FULL_CONTROL',
                 ID=user_id,
                 DisplayName=display_name,
@@ -3998,6 +4043,14 @@ def test_bucket_acl_canned_authenticatedread():
                 EmailAddress=None,
                 Type='CanonicalUser',
                 ),
+            dict(
+                Permission='READ',
+                ID=None,
+                DisplayName=None,
+                URI='http://acs.amazonaws.com/groups/global/AuthenticatedUsers',
+                EmailAddress=None,
+                Type='Group',
+            ),
             ],
         )
 
@@ -4375,7 +4428,11 @@ def add_bucket_user_grant(bucket_name, grant):
     grants = response['Grants']
     grants.append(grant)
 
-    grant = {'Grants': grants, 'Owner': {'DisplayName': main_display_name, 'ID': main_user_id}}
+    owner = {'ID': main_user_id}
+    if main_display_name is not None:
+        owner['DisplayName'] = main_display_name
+
+    grant = {'Grants': grants, 'Owner': owner}
 
     return grant
 
@@ -4469,17 +4526,17 @@ def _bucket_acl_grant_userid(permission):
         grants,
         [
             dict(
-                Permission=permission,
-                ID=alt_user_id,
-                DisplayName=alt_display_name,
+                Permission='FULL_CONTROL',
+                ID=main_user_id,
+                DisplayName=main_display_name,
                 URI=None,
                 EmailAddress=None,
                 Type='CanonicalUser',
                 ),
             dict(
-                Permission='FULL_CONTROL',
-                ID=main_user_id,
-                DisplayName=main_display_name,
+                Permission=permission,
+                ID=alt_user_id,
+                DisplayName=alt_display_name,
                 URI=None,
                 EmailAddress=None,
                 Type='CanonicalUser',
@@ -4563,7 +4620,7 @@ def test_bucket_acl_grant_userid_fullcontrol():
 
     bucket_acl_response = client.get_bucket_acl(Bucket=bucket_name)
     owner_id = bucket_acl_response['Owner']['ID']
-    owner_display_name = bucket_acl_response['Owner']['DisplayName']
+    owner_display_name = bucket_acl_response['Owner'].get('DisplayName')
 
     main_display_name = get_main_display_name()
     main_user_id = get_main_user_id()
@@ -4770,6 +4827,14 @@ def test_bucket_header_acl_grants():
                 Type='CanonicalUser',
                 ),
             dict(
+                Permission='FULL_CONTROL',
+                ID=alt_user_id,
+                DisplayName=alt_display_name,
+                URI=None,
+                EmailAddress=None,
+                Type='CanonicalUser',
+                ),
+            dict(
                 Permission='READ_ACP',
                 ID=alt_user_id,
                 DisplayName=alt_display_name,
@@ -4779,14 +4844,6 @@ def test_bucket_header_acl_grants():
                 ),
             dict(
                 Permission='WRITE_ACP',
-                ID=alt_user_id,
-                DisplayName=alt_display_name,
-                URI=None,
-                EmailAddress=None,
-                Type='CanonicalUser',
-                ),
-            dict(
-                Permission='FULL_CONTROL',
                 ID=alt_user_id,
                 DisplayName=alt_display_name,
                 URI=None,
@@ -6301,7 +6358,7 @@ def test_list_multipart_upload():
 
 @pytest.mark.fails_on_dbstore
 def test_list_multipart_upload_owner():
-    bucket_name = get_new_bucket()
+    bucket_name = _setup_bucket_acl()
 
     client1 = get_client()
     user1 = get_main_user_id()
@@ -6325,9 +6382,9 @@ def test_list_multipart_upload_owner():
                 assert upload['Key'] == key
                 assert upload['UploadId'] == uploadid
                 assert upload['Initiator']['ID'] == userid
-                assert upload['Initiator']['DisplayName'] == username
+                assert upload['Initiator'].get('DisplayName') == username
                 assert upload['Owner']['ID'] == userid
-                assert upload['Owner']['DisplayName'] == username
+                assert upload['Owner'].get('DisplayName') == username
 
             # list uploads with client1
             uploads1 = client1.list_multipart_uploads(Bucket=bucket_name)['Uploads']
@@ -12906,7 +12963,7 @@ def test_block_public_policy():
 
 
 def test_ignore_public_acls():
-    bucket_name = get_new_bucket()
+    bucket_name = _setup_bucket_acl()
     client = get_client()
     alt_client = get_alt_client()
 
