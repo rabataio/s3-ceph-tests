@@ -317,11 +317,37 @@ def test_bucket_create_contentlength_none():
     remove = 'Content-Length'
     _remove_header_create_bucket(remove)
 
+
+def _setup_bucket_acl():
+    """
+    set up a new bucket to allow set ACL
+    """
+    bucket_name = get_new_bucket_name()
+    client = get_client()
+
+    try:
+        client.create_bucket(Bucket=bucket_name, ObjectOwnership='BucketOwnerPreferred')
+        client.put_public_access_block(
+            Bucket=bucket_name,
+            PublicAccessBlockConfiguration={
+                'BlockPublicAcls': False,
+                'IgnorePublicAcls': False,
+                'BlockPublicPolicy': False,
+                'RestrictPublicBuckets': False,
+            },
+        )
+    except:
+        # NOTE: Skip error until we don't implement PutPublicAccessBlock API.
+        client.create_bucket(Bucket=bucket_name)
+
+    return bucket_name
+
+
 @pytest.mark.auth_common
 # TODO: remove 'fails_on_rgw' and once we have learned how to remove the content-length header
 @pytest.mark.fails_on_rgw
 def test_object_acl_create_contentlength_none():
-    bucket_name = get_new_bucket()
+    bucket_name = _setup_bucket_acl()
     client = get_client()
     client.put_object(Bucket=bucket_name, Key='foo', Body='bar')
 

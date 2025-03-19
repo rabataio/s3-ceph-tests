@@ -1392,7 +1392,7 @@ def test_bucket_list_return_data():
         acl_response = client.get_object_acl(Bucket=bucket_name, Key=key_name)
         data.update({
             key_name: {
-                'DisplayName': acl_response['Owner']['DisplayName'],
+                'DisplayName': acl_response['Owner'].get('DisplayName'),
                 'ID': acl_response['Owner']['ID'],
                 'ETag': obj_response['ETag'],
                 'LastModified': obj_response['LastModified'],
@@ -1407,7 +1407,7 @@ def test_bucket_list_return_data():
         key_data = data[key_name]
         assert obj['ETag'] == key_data['ETag']
         assert obj['Size'] == key_data['ContentLength']
-        assert obj['Owner']['DisplayName'] == key_data['DisplayName']
+        assert obj['Owner'].get('DisplayName') == key_data['DisplayName']
         assert obj['Owner']['ID'] == key_data['ID']
         _compare_dates(obj['LastModified'],key_data['LastModified'])
 
@@ -3263,8 +3263,7 @@ def _setup_bucket_object_acl(bucket_acl, object_acl, client=None):
     """
     if client is None:
         client = get_client()
-    bucket_name = get_new_bucket_name()
-    client.create_bucket(ACL=bucket_acl, Bucket=bucket_name)
+    bucket_name = _setup_bucket_acl(bucket_acl)
     client.put_object(ACL=object_acl, Bucket=bucket_name, Key='foo')
 
     return bucket_name
@@ -3277,7 +3276,7 @@ def _setup_bucket_acl(bucket_acl=None):
     client = get_client()
 
     try:
-        client.create_bucket(Bucket=bucket_name, ObjectOwnership='ObjectWriter')
+        client.create_bucket(Bucket=bucket_name, ObjectOwnership='BucketOwnerPreferred')
         client.put_public_access_block(
             Bucket=bucket_name,
             PublicAccessBlockConfiguration={
@@ -3884,8 +3883,8 @@ def check_grants(got, want):
 
     # There are instances when got does not match due the order of item.
     if got[0]["Grantee"].get("DisplayName"):
-        got.sort(key=lambda x: x["Grantee"].get("DisplayName"))
-        want.sort(key=lambda x: x["DisplayName"])
+        got.sort(key=lambda x: x["Grantee"].get("DisplayName") or "")
+        want.sort(key=lambda x: x.get("DisplayName") or "")
 
     for g, w in zip(got, want):
         w = dict(w)
@@ -4107,7 +4106,7 @@ def test_object_acl_default():
         )
 
 def test_object_acl_canned_during_create():
-    bucket_name = get_new_bucket()
+    bucket_name = _setup_bucket_acl()
     client = get_client()
 
     client.put_object(ACL='public-read', Bucket=bucket_name, Key='foo', Body='bar')
@@ -4116,11 +4115,18 @@ def test_object_acl_canned_during_create():
     display_name = get_main_display_name()
     user_id = get_main_user_id()
 
-
     grants = response['Grants']
     check_grants(
         grants,
         [
+            dict(
+                Permission='FULL_CONTROL',
+                ID=user_id,
+                DisplayName=display_name,
+                URI=None,
+                EmailAddress=None,
+                Type='CanonicalUser',
+            ),
             dict(
                 Permission='READ',
                 ID=None,
@@ -4129,19 +4135,11 @@ def test_object_acl_canned_during_create():
                 EmailAddress=None,
                 Type='Group',
                 ),
-            dict(
-                Permission='FULL_CONTROL',
-                ID=user_id,
-                DisplayName=display_name,
-                URI=None,
-                EmailAddress=None,
-                Type='CanonicalUser',
-                ),
             ],
         )
 
 def test_object_acl_canned():
-    bucket_name = get_new_bucket()
+    bucket_name = _setup_bucket_acl()
     client = get_client()
 
     # Since it defaults to private, set it public-read first
@@ -4156,20 +4154,20 @@ def test_object_acl_canned():
         grants,
         [
             dict(
-                Permission='READ',
-                ID=None,
-                DisplayName=None,
-                URI='http://acs.amazonaws.com/groups/global/AllUsers',
-                EmailAddress=None,
-                Type='Group',
-                ),
-            dict(
                 Permission='FULL_CONTROL',
                 ID=user_id,
                 DisplayName=display_name,
                 URI=None,
                 EmailAddress=None,
                 Type='CanonicalUser',
+            ),
+            dict(
+                Permission='READ',
+                ID=None,
+                DisplayName=None,
+                URI='http://acs.amazonaws.com/groups/global/AllUsers',
+                EmailAddress=None,
+                Type='Group',
                 ),
             ],
         )
@@ -4194,7 +4192,7 @@ def test_object_acl_canned():
         )
 
 def test_object_acl_canned_publicreadwrite():
-    bucket_name = get_new_bucket()
+    bucket_name = _setup_bucket_acl()
     client = get_client()
 
     client.put_object(ACL='public-read-write', Bucket=bucket_name, Key='foo', Body='bar')
@@ -4207,6 +4205,14 @@ def test_object_acl_canned_publicreadwrite():
     check_grants(
         grants,
         [
+            dict(
+                Permission='FULL_CONTROL',
+                ID=user_id,
+                DisplayName=display_name,
+                URI=None,
+                EmailAddress=None,
+                Type='CanonicalUser',
+            ),
             dict(
                 Permission='READ',
                 ID=None,
@@ -4223,19 +4229,11 @@ def test_object_acl_canned_publicreadwrite():
                 EmailAddress=None,
                 Type='Group',
                 ),
-            dict(
-                Permission='FULL_CONTROL',
-                ID=user_id,
-                DisplayName=display_name,
-                URI=None,
-                EmailAddress=None,
-                Type='CanonicalUser',
-                ),
             ],
         )
 
 def test_object_acl_canned_authenticatedread():
-    bucket_name = get_new_bucket()
+    bucket_name = _setup_bucket_acl()
     client = get_client()
 
     client.put_object(ACL='authenticated-read', Bucket=bucket_name, Key='foo', Body='bar')
@@ -4249,6 +4247,14 @@ def test_object_acl_canned_authenticatedread():
         grants,
         [
             dict(
+                Permission='FULL_CONTROL',
+                ID=user_id,
+                DisplayName=display_name,
+                URI=None,
+                EmailAddress=None,
+                Type='CanonicalUser',
+            ),
+            dict(
                 Permission='READ',
                 ID=None,
                 DisplayName=None,
@@ -4256,29 +4262,19 @@ def test_object_acl_canned_authenticatedread():
                 EmailAddress=None,
                 Type='Group',
                 ),
-            dict(
-                Permission='FULL_CONTROL',
-                ID=user_id,
-                DisplayName=display_name,
-                URI=None,
-                EmailAddress=None,
-                Type='CanonicalUser',
-                ),
             ],
         )
 
 def test_object_acl_canned_bucketownerread():
-    bucket_name = get_new_bucket_name()
+    bucket_name = _setup_bucket_acl('public-read-write')
     main_client = get_client()
     alt_client = get_alt_client()
-
-    main_client.create_bucket(Bucket=bucket_name, ACL='public-read-write')
 
     alt_client.put_object(Bucket=bucket_name, Key='foo', Body='bar')
 
     bucket_acl_response = main_client.get_bucket_acl(Bucket=bucket_name)
-    bucket_owner_id = bucket_acl_response['Grants'][2]['Grantee']['ID']
-    bucket_owner_display_name = bucket_acl_response['Grants'][2]['Grantee']['DisplayName']
+    bucket_owner_id = bucket_acl_response['Grants'][0]['Grantee']['ID']
+    bucket_owner_display_name = bucket_acl_response['Grants'][0]['Grantee'].get('DisplayName')
 
     alt_client.put_object(ACL='bucket-owner-read', Bucket=bucket_name, Key='foo')
     response = alt_client.get_object_acl(Bucket=bucket_name, Key='foo')
@@ -4310,23 +4306,23 @@ def test_object_acl_canned_bucketownerread():
         )
 
 def test_object_acl_canned_bucketownerfullcontrol():
-    bucket_name = get_new_bucket_name()
+    bucket_name = _setup_bucket_acl('public-read-write')
     main_client = get_client()
     alt_client = get_alt_client()
-
-    main_client.create_bucket(Bucket=bucket_name, ACL='public-read-write')
 
     alt_client.put_object(Bucket=bucket_name, Key='foo', Body='bar')
 
     bucket_acl_response = main_client.get_bucket_acl(Bucket=bucket_name)
-    bucket_owner_id = bucket_acl_response['Grants'][2]['Grantee']['ID']
-    bucket_owner_display_name = bucket_acl_response['Grants'][2]['Grantee']['DisplayName']
+    bucket_owner_id = bucket_acl_response['Grants'][0]['Grantee']['ID']
+    bucket_owner_display_name = bucket_acl_response['Grants'][0]['Grantee'].get('DisplayName')
 
     alt_client.put_object(ACL='bucket-owner-full-control', Bucket=bucket_name, Key='foo')
-    response = alt_client.get_object_acl(Bucket=bucket_name, Key='foo')
+    # NOTE: Alt client can't get object ACL when ObjectOwnership is BucketOwnerPreferred and bucket-owner-full-control
+    # is set.
+    response = main_client.get_object_acl(Bucket=bucket_name, Key='foo')
 
-    alt_display_name = get_alt_display_name()
-    alt_user_id = get_alt_user_id()
+    main_display_name = get_main_display_name()
+    main_user_id = get_main_user_id()
 
     grants = response['Grants']
     check_grants(
@@ -4334,16 +4330,8 @@ def test_object_acl_canned_bucketownerfullcontrol():
         [
             dict(
                 Permission='FULL_CONTROL',
-                ID=alt_user_id,
-                DisplayName=alt_display_name,
-                URI=None,
-                EmailAddress=None,
-                Type='CanonicalUser',
-                ),
-            dict(
-                Permission='FULL_CONTROL',
-                ID=bucket_owner_id,
-                DisplayName=bucket_owner_display_name,
+                ID=main_user_id,
+                DisplayName=main_display_name,
                 URI=None,
                 EmailAddress=None,
                 Type='CanonicalUser',
@@ -4353,11 +4341,9 @@ def test_object_acl_canned_bucketownerfullcontrol():
 
 @pytest.mark.fails_on_aws
 def test_object_acl_full_control_verify_owner():
-    bucket_name = get_new_bucket_name()
+    bucket_name = _setup_bucket_acl('public-read-write')
     main_client = get_client()
     alt_client = get_alt_client()
-
-    main_client.create_bucket(Bucket=bucket_name, ACL='public-read-write')
 
     main_client.put_object(Bucket=bucket_name, Key='foo', Body='bar')
 
@@ -4367,11 +4353,11 @@ def test_object_acl_full_control_verify_owner():
     main_user_id = get_main_user_id()
     main_display_name = get_main_display_name()
 
-    grant = { 'Grants': [{'Grantee': {'ID': alt_user_id, 'Type': 'CanonicalUser' }, 'Permission': 'FULL_CONTROL'}], 'Owner': {'DisplayName': main_display_name, 'ID': main_user_id}}
+    grant = { 'Grants': [{'Grantee': {'ID': alt_user_id, 'Type': 'CanonicalUser' }, 'Permission': 'FULL_CONTROL'}], 'Owner': {'DisplayName': main_display_name or '', 'ID': main_user_id}}
 
     main_client.put_object_acl(Bucket=bucket_name, Key='foo', AccessControlPolicy=grant)
 
-    grant = { 'Grants': [{'Grantee': {'ID': alt_user_id, 'Type': 'CanonicalUser' }, 'Permission': 'READ_ACP'}], 'Owner': {'DisplayName': main_display_name, 'ID': main_user_id}}
+    grant = { 'Grants': [{'Grantee': {'ID': alt_user_id, 'Type': 'CanonicalUser' }, 'Permission': 'READ_ACP'}], 'Owner': {'DisplayName': main_display_name or '', 'ID': main_user_id}}
 
     alt_client.put_object_acl(Bucket=bucket_name, Key='foo', AccessControlPolicy=grant)
 
@@ -4396,16 +4382,14 @@ def add_obj_user_grant(bucket_name, key, grant):
     grants = response['Grants']
     grants.append(grant)
 
-    grant = {'Grants': grants, 'Owner': {'DisplayName': main_display_name, 'ID': main_user_id}}
+    grant = {'Grants': grants, 'Owner': {'DisplayName': main_display_name or '', 'ID': main_user_id}}
 
     return grant
 
 def test_object_acl_full_control_verify_attributes():
-    bucket_name = get_new_bucket_name()
+    bucket_name = _setup_bucket_acl('public-read-write')
     main_client = get_client()
     alt_client = get_alt_client()
-
-    main_client.create_bucket(Bucket=bucket_name, ACL='public-read-write')
 
     header = {'x-amz-foo': 'bar'}
     # lambda to add any header
@@ -4467,7 +4451,7 @@ def _check_object_acl(permission):
     Sets the permission on an object then checks to see
     if it was set
     """
-    bucket_name = get_new_bucket()
+    bucket_name = _setup_bucket_acl()
     client = get_client()
 
     client.put_object(Bucket=bucket_name, Key='foo', Body='bar')
@@ -4745,7 +4729,7 @@ def _get_acl_header(user_id=None, perms=None):
 @pytest.mark.fails_on_dho
 @pytest.mark.fails_on_aws
 def test_object_header_acl_grants():
-    bucket_name = get_new_bucket()
+    bucket_name = _setup_bucket_acl()
     client = get_client()
 
     alt_user_id = get_alt_user_id()
@@ -4784,6 +4768,14 @@ def test_object_header_acl_grants():
                 Type='CanonicalUser',
                 ),
             dict(
+                Permission='FULL_CONTROL',
+                ID=alt_user_id,
+                DisplayName=alt_display_name,
+                URI=None,
+                EmailAddress=None,
+                Type='CanonicalUser',
+            ),
+            dict(
                 Permission='READ_ACP',
                 ID=alt_user_id,
                 DisplayName=alt_display_name,
@@ -4793,14 +4785,6 @@ def test_object_header_acl_grants():
                 ),
             dict(
                 Permission='WRITE_ACP',
-                ID=alt_user_id,
-                DisplayName=alt_display_name,
-                URI=None,
-                EmailAddress=None,
-                Type='CanonicalUser',
-                ),
-            dict(
-                Permission='FULL_CONTROL',
                 ID=alt_user_id,
                 DisplayName=alt_display_name,
                 URI=None,
@@ -4984,14 +4968,13 @@ def _setup_access(bucket_acl, object_acl):
     - b: owning user, default ACL in bucket w/given ACL
     - b2: same object accessed by a some other user
     """
-    bucket_name = get_new_bucket()
+    bucket_name = _setup_bucket_acl(bucket_acl)
     client = get_client()
 
     key1 = 'foo'
     key2 = 'bar'
     newkey = 'new'
 
-    client.put_bucket_acl(Bucket=bucket_name, ACL=bucket_acl)
     client.put_object(Bucket=bucket_name, Key=key1, Body='foocontent')
     client.put_object_acl(Bucket=bucket_name, Key=key1, ACL=object_acl)
     client.put_object(Bucket=bucket_name, Key=key2, Body='barcontent')
@@ -5230,10 +5213,10 @@ def test_access_bucket_publicreadwrite_object_private():
 
     # a should be private, b gets default (private)
     check_access_denied(alt_client.get_object, Bucket=bucket_name, Key=key1)
-    alt_client.put_object(Bucket=bucket_name, Key=key1, Body='barcontent')
+    check_access_denied(alt_client.put_object, Bucket=bucket_name, Key=key1, Body='barcontent')
 
     check_access_denied(alt_client.get_object, Bucket=bucket_name, Key=key2)
-    alt_client.put_object(Bucket=bucket_name, Key=key2, Body='baroverwrite')
+    check_access_denied(alt_client.put_object, Bucket=bucket_name, Key=key2, Body='baroverwrite')
 
     objs = get_objects_list(bucket=bucket_name, client=alt_client)
     assert objs == ['bar', 'foo']
@@ -5248,10 +5231,10 @@ def test_access_bucket_publicreadwrite_object_publicread():
 
     body = _get_body(response)
     assert body == 'foocontent'
-    alt_client.put_object(Bucket=bucket_name, Key=key1, Body='barcontent')
+    check_access_denied(alt_client.put_object, Bucket=bucket_name, Key=key1, Body='barcontent')
 
     check_access_denied(alt_client.get_object, Bucket=bucket_name, Key=key2)
-    alt_client.put_object(Bucket=bucket_name, Key=key2, Body='baroverwrite')
+    check_access_denied(alt_client.put_object, Bucket=bucket_name, Key=key2, Body='baroverwrite')
 
     objs = get_objects_list(bucket=bucket_name, client=alt_client)
     assert objs == ['bar', 'foo']
@@ -5265,9 +5248,9 @@ def test_access_bucket_publicreadwrite_object_publicreadwrite():
 
     # a should be public-read-write, b gets default (private)
     assert body == 'foocontent'
-    alt_client.put_object(Bucket=bucket_name, Key=key1, Body='foooverwrite')
+    check_access_denied(alt_client.put_object, Bucket=bucket_name, Key=key1, Body='foooverwrite')
     check_access_denied(alt_client.get_object, Bucket=bucket_name, Key=key2)
-    alt_client.put_object(Bucket=bucket_name, Key=key2, Body='baroverwrite')
+    check_access_denied(alt_client.put_object, Bucket=bucket_name, Key=key2, Body='baroverwrite')
     objs = get_objects_list(bucket=bucket_name, client=alt_client)
     assert objs == ['bar', 'foo']
     alt_client.put_object(Bucket=bucket_name, Key=newkey, Body='newcontent')
