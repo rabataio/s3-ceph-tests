@@ -3277,7 +3277,7 @@ def _setup_bucket_acl(bucket_acl=None):
     client = get_client()
 
     try:
-        client.create_bucket(Bucket=bucket_name, ObjectOwnership='ObjectWriter')
+        client.create_bucket(Bucket=bucket_name, ObjectOwnership='BucketOwnerPreferred')
         client.put_public_access_block(
             Bucket=bucket_name,
             PublicAccessBlockConfiguration={
@@ -4985,14 +4985,13 @@ def _setup_access(bucket_acl, object_acl):
     - b: owning user, default ACL in bucket w/given ACL
     - b2: same object accessed by a some other user
     """
-    bucket_name = get_new_bucket()
+    bucket_name = _setup_bucket_acl(bucket_acl)
     client = get_client()
 
     key1 = 'foo'
     key2 = 'bar'
     newkey = 'new'
 
-    client.put_bucket_acl(Bucket=bucket_name, ACL=bucket_acl)
     client.put_object(Bucket=bucket_name, Key=key1, Body='foocontent')
     client.put_object_acl(Bucket=bucket_name, Key=key1, ACL=object_acl)
     client.put_object(Bucket=bucket_name, Key=key2, Body='barcontent')
@@ -5231,10 +5230,10 @@ def test_access_bucket_publicreadwrite_object_private():
 
     # a should be private, b gets default (private)
     check_access_denied(alt_client.get_object, Bucket=bucket_name, Key=key1)
-    alt_client.put_object(Bucket=bucket_name, Key=key1, Body='barcontent')
+    check_access_denied(alt_client.put_object, Bucket=bucket_name, Key=key1, Body='barcontent')
 
     check_access_denied(alt_client.get_object, Bucket=bucket_name, Key=key2)
-    alt_client.put_object(Bucket=bucket_name, Key=key2, Body='baroverwrite')
+    check_access_denied(alt_client.put_object, Bucket=bucket_name, Key=key2, Body='baroverwrite')
 
     objs = get_objects_list(bucket=bucket_name, client=alt_client)
     assert objs == ['bar', 'foo']
@@ -5249,10 +5248,10 @@ def test_access_bucket_publicreadwrite_object_publicread():
 
     body = _get_body(response)
     assert body == 'foocontent'
-    alt_client.put_object(Bucket=bucket_name, Key=key1, Body='barcontent')
+    check_access_denied(alt_client.put_object, Bucket=bucket_name, Key=key1, Body='barcontent')
 
     check_access_denied(alt_client.get_object, Bucket=bucket_name, Key=key2)
-    alt_client.put_object(Bucket=bucket_name, Key=key2, Body='baroverwrite')
+    check_access_denied(alt_client.put_object, Bucket=bucket_name, Key=key2, Body='baroverwrite')
 
     objs = get_objects_list(bucket=bucket_name, client=alt_client)
     assert objs == ['bar', 'foo']
@@ -5266,9 +5265,9 @@ def test_access_bucket_publicreadwrite_object_publicreadwrite():
 
     # a should be public-read-write, b gets default (private)
     assert body == 'foocontent'
-    alt_client.put_object(Bucket=bucket_name, Key=key1, Body='foooverwrite')
+    check_access_denied(alt_client.put_object, Bucket=bucket_name, Key=key1, Body='foooverwrite')
     check_access_denied(alt_client.get_object, Bucket=bucket_name, Key=key2)
-    alt_client.put_object(Bucket=bucket_name, Key=key2, Body='baroverwrite')
+    check_access_denied(alt_client.put_object, Bucket=bucket_name, Key=key2, Body='baroverwrite')
     objs = get_objects_list(bucket=bucket_name, client=alt_client)
     assert objs == ['bar', 'foo']
     alt_client.put_object(Bucket=bucket_name, Key=newkey, Body='newcontent')
