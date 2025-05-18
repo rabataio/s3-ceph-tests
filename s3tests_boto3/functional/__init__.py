@@ -50,6 +50,12 @@ def choose_bucket_prefix(template, max_len=30):
             ),
         )
 
+def create_bucket(client, **params):
+    if 'CreateBucketConfiguration' not in params and client.meta.region_name not in ('', DEFAULT_REGION):
+        params['CreateBucketConfiguration'] = {'LocationConstraint': client.meta.region_name}
+
+    return client.create_bucket(**params)
+
 def get_buckets_list(client=None, prefix=None):
     if client == None:
         client = get_client()
@@ -581,13 +587,7 @@ def get_new_bucket(client=None, name=None):
     if name is None:
         name = get_new_bucket_name()
 
-    params = {
-        'Bucket': name,
-    }
-    if client.meta.region_name != DEFAULT_REGION:
-        params['CreateBucketConfiguration'] = {'LocationConstraint': client.meta.region_name}
-
-    client.create_bucket(**params)
+    create_bucket(client, Bucket=name)
     return name
 
 def get_parameter_name():
