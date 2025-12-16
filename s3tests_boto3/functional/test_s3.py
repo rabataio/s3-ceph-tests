@@ -5526,8 +5526,7 @@ def test_object_copy_not_owned_bucket():
 def test_object_copy_not_owned_object_bucket():
     client = get_client()
     alt_client = get_alt_client()
-    bucket_name = get_new_bucket_name()
-    create_bucket(client, Bucket=bucket_name)
+    bucket_name = _setup_bucket_acl()
     client.put_object(Bucket=bucket_name, Key='foo123bar', Body='foo')
 
     alt_user_id = get_alt_user_id()
@@ -5546,7 +5545,7 @@ def test_object_copy_not_owned_object_bucket():
 
 @pytest.mark.fails_on_dbstore
 def test_object_copy_canned_acl():
-    bucket_name = get_new_bucket()
+    bucket_name = _setup_bucket_acl()
     client = get_client()
     alt_client = get_alt_client()
     client.put_object(Bucket=bucket_name, Key='foo123bar', Body='foo')
