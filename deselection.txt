@@ -48,27 +48,6 @@ s3tests_boto3/functional/test_s3.py::test_put_object_ifnonmatch_failed
 s3tests_boto3/functional/test_s3.py::test_put_object_ifnonmatch_nonexisted_good
 s3tests_boto3/functional/test_s3.py::test_put_object_ifnonmatch_overwrite_existed_failed
 
-# NotImplemented - CopyObject
-s3tests_boto3/functional/test_s3.py::test_object_copy_zero_size
-s3tests_boto3/functional/test_s3.py::test_object_copy_16m
-s3tests_boto3/functional/test_s3.py::test_object_copy_same_bucket
-s3tests_boto3/functional/test_s3.py::test_object_copy_verify_contenttype
-s3tests_boto3/functional/test_s3.py::test_object_copy_to_itself
-s3tests_boto3/functional/test_s3.py::test_object_copy_to_itself_with_metadata
-s3tests_boto3/functional/test_s3.py::test_object_copy_diff_bucket
-s3tests_boto3/functional/test_s3.py::test_object_copy_not_owned_bucket
-s3tests_boto3/functional/test_s3.py::test_object_copy_canned_acl
-s3tests_boto3/functional/test_s3.py::test_object_copy_retaining_metadata
-s3tests_boto3/functional/test_s3.py::test_object_copy_replacing_metadata
-s3tests_boto3/functional/test_s3.py::test_object_copy_versioned_bucket
-s3tests_boto3/functional/test_s3.py::test_object_copy_versioned_url_encoding
-s3tests_boto3/functional/test_s3.py::test_object_copy_versioning_multipart_upload
-s3tests_boto3/functional/test_s3.py::test_object_copy_not_owned_object_bucket
-s3tests_boto3/functional/test_s3.py::test_copy_object_ifmatch_good
-s3tests_boto3/functional/test_s3.py::test_copy_object_ifmatch_failed
-s3tests_boto3/functional/test_s3.py::test_copy_object_ifnonematch_good
-s3tests_boto3/functional/test_s3.py::test_copy_object_ifnonematch_failed
-
 # NotImplemented - UploadPartCopy
 s3tests_boto3/functional/test_s3.py::test_multipart_copy_small
 s3tests_boto3/functional/test_s3.py::test_multipart_copy_invalid_range
@@ -115,6 +94,9 @@ s3tests_boto3/functional/test_s3.py::test_versioned_object_acl_no_version_specif
 s3tests_boto3/functional/test_s3.py::test_versioned_concurrent_object_create_concurrent_remove
 s3tests_boto3/functional/test_s3.py::test_versioned_concurrent_object_create_and_remove
 s3tests_boto3/functional/test_s3.py::test_object_put_acl_mtime
+s3tests_boto3/functional/test_s3.py::test_object_copy_versioned_bucket
+s3tests_boto3/functional/test_s3.py::test_object_copy_versioning_multipart_upload
+s3tests_boto3/functional/test_s3.py::test_object_copy_versioned_url_encoding
 
 # NotImplemented - Multiple storage classes
 s3tests/functional/test_s3.py::test_object_storage_class
