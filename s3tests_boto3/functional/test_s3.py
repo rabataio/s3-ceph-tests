@@ -10183,7 +10183,7 @@ def test_encryption_sse_c_other_key():
     client.meta.events.register('before-call.s3.GetObject', lf)
     e = assert_raises(ClientError, client.get_object, Bucket=bucket_name, Key=key)
     status, error_code = _get_status_and_error_code(e.response)
-    assert status == 400
+    assert status == 403
 
 @pytest.mark.encryption
 def test_encryption_sse_c_invalid_md5():
@@ -10307,7 +10307,7 @@ def test_encryption_sse_c_multipart_upload():
     content_type = 'text/plain'
     objlen = 30 * 1024 * 1024
     partlen = 5*1024*1024
-    metadata = {'foo': 'bar'}
+    metadata = {'Foo': 'bar'}
     enc_headers = {
         'x-amz-server-side-encryption-customer-algorithm': 'AES256',
         'x-amz-server-side-encryption-customer-key': 'pO3upElrwuEXSoFwCfnZPdSsmt/xWeFa0N9KgDijwVs=',
@@ -10353,7 +10353,7 @@ def test_encryption_sse_c_unaligned_multipart_upload():
     content_type = 'text/plain'
     objlen = 30 * 1024 * 1024
     partlen = 1 + 5 * 1024 * 1024 # not a multiple of the 4k encryption block size
-    metadata = {'foo': 'bar'}
+    metadata = {'Foo': 'bar'}
     enc_headers = {
         'x-amz-server-side-encryption-customer-algorithm': 'AES256',
         'x-amz-server-side-encryption-customer-key': 'pO3upElrwuEXSoFwCfnZPdSsmt/xWeFa0N9KgDijwVs=',
@@ -10453,7 +10453,7 @@ def test_encryption_sse_c_multipart_bad_download():
     key = "multipart_enc"
     content_type = 'text/plain'
     objlen = 30 * 1024 * 1024
-    metadata = {'foo': 'bar'}
+    metadata = {'Foo': 'Bar'}
     put_headers = {
         'x-amz-server-side-encryption-customer-algorithm': 'AES256',
         'x-amz-server-side-encryption-customer-key': 'pO3upElrwuEXSoFwCfnZPdSsmt/xWeFa0N9KgDijwVs=',
@@ -10489,7 +10489,7 @@ def test_encryption_sse_c_multipart_bad_download():
     client.meta.events.register('before-call.s3.GetObject', lf)
     e = assert_raises(ClientError, client.get_object, Bucket=bucket_name, Key=key)
     status, error_code = _get_status_and_error_code(e.response)
-    assert status == 400
+    assert status == 403
 
 
 @pytest.mark.encryption
