@@ -5545,7 +5545,7 @@ def test_object_copy_not_owned_object_bucket():
 
 @pytest.mark.fails_on_dbstore
 def test_object_copy_canned_acl():
-    bucket_name = get_new_bucket()
+    bucket_name = _setup_bucket_acl()
     client = get_client()
     alt_client = get_alt_client()
     client.put_object(Bucket=bucket_name, Key='foo123bar', Body='foo')
@@ -9864,7 +9864,7 @@ def test_lifecycle_cloud_transition_large_obj():
     expire1_keys = list_bucket_storage_class(client, bucket)
     assert len(expire1_keys['STANDARD']) == 1
 
-
+    
     if (retain_head_object != None and retain_head_object == "true"):
         assert len(expire1_keys[cloud_sc]) == 1
     else:
@@ -10118,6 +10118,8 @@ def test_encrypted_transfer_13b():
 
 @pytest.mark.encryption
 def test_encryption_sse_c_method_head():
+    if not get_config_is_secure():
+        pytest.skip("test requires secure (HTTPS) endpoint")
     bucket_name = get_new_bucket()
     client = get_client()
     data = 'A'*1000
@@ -10143,6 +10145,8 @@ def test_encryption_sse_c_method_head():
 
 @pytest.mark.encryption
 def test_encryption_sse_c_present():
+    if not get_config_is_secure():
+        pytest.skip("test requires secure (HTTPS) endpoint")
     bucket_name = get_new_bucket()
     client = get_client()
     data = 'A'*1000
@@ -10163,6 +10167,8 @@ def test_encryption_sse_c_present():
 
 @pytest.mark.encryption
 def test_encryption_sse_c_other_key():
+    if not get_config_is_secure():
+        pytest.skip("test requires secure (HTTPS) endpoint")
     bucket_name = get_new_bucket()
     client = get_client()
     data = 'A'*100
@@ -10304,6 +10310,8 @@ def _check_content_using_range_enc(client, bucket_name, key, data, size, step, e
 @pytest.mark.encryption
 @pytest.mark.fails_on_dbstore
 def test_encryption_sse_c_multipart_upload():
+    if not get_config_is_secure():
+        pytest.skip("test requires secure (HTTPS) endpoint")
     bucket_name = get_new_bucket()
     client = get_client()
     key = "multipart_enc"
@@ -10350,6 +10358,8 @@ def test_encryption_sse_c_multipart_upload():
 @pytest.mark.encryption
 @pytest.mark.fails_on_dbstore
 def test_encryption_sse_c_unaligned_multipart_upload():
+    if not get_config_is_secure():
+        pytest.skip("test requires secure (HTTPS) endpoint")
     bucket_name = get_new_bucket()
     client = get_client()
     key = "multipart_enc"
@@ -10451,6 +10461,8 @@ def test_encryption_sse_c_multipart_invalid_chunks_2():
 
 @pytest.mark.encryption
 def test_encryption_sse_c_multipart_bad_download():
+    if not get_config_is_secure():
+        pytest.skip("test requires secure (HTTPS) endpoint")
     bucket_name = get_new_bucket()
     client = get_client()
     key = "multipart_enc"
@@ -10498,6 +10510,8 @@ def test_encryption_sse_c_multipart_bad_download():
 @pytest.mark.encryption
 @pytest.mark.fails_on_dbstore
 def test_encryption_sse_c_post_object_authenticated_request():
+    if not get_config_is_secure():
+        pytest.skip("test requires secure (HTTPS) endpoint")
     bucket_name = get_new_bucket()
     client = get_client()
 
