@@ -10120,6 +10120,7 @@ def test_encrypted_transfer_13b():
 def test_encryption_sse_c_method_head():
     if not get_config_is_secure():
         pytest.skip("test requires secure (HTTPS) endpoint")
+
     bucket_name = get_new_bucket()
     client = get_client()
     data = 'A'*1000
@@ -10147,6 +10148,7 @@ def test_encryption_sse_c_method_head():
 def test_encryption_sse_c_present():
     if not get_config_is_secure():
         pytest.skip("test requires secure (HTTPS) endpoint")
+
     bucket_name = get_new_bucket()
     client = get_client()
     data = 'A'*1000
@@ -10169,6 +10171,7 @@ def test_encryption_sse_c_present():
 def test_encryption_sse_c_other_key():
     if not get_config_is_secure():
         pytest.skip("test requires secure (HTTPS) endpoint")
+
     bucket_name = get_new_bucket()
     client = get_client()
     data = 'A'*100
@@ -10312,6 +10315,7 @@ def _check_content_using_range_enc(client, bucket_name, key, data, size, step, e
 def test_encryption_sse_c_multipart_upload():
     if not get_config_is_secure():
         pytest.skip("test requires secure (HTTPS) endpoint")
+
     bucket_name = get_new_bucket()
     client = get_client()
     key = "multipart_enc"
@@ -10360,6 +10364,7 @@ def test_encryption_sse_c_multipart_upload():
 def test_encryption_sse_c_unaligned_multipart_upload():
     if not get_config_is_secure():
         pytest.skip("test requires secure (HTTPS) endpoint")
+
     bucket_name = get_new_bucket()
     client = get_client()
     key = "multipart_enc"
@@ -10463,6 +10468,7 @@ def test_encryption_sse_c_multipart_invalid_chunks_2():
 def test_encryption_sse_c_multipart_bad_download():
     if not get_config_is_secure():
         pytest.skip("test requires secure (HTTPS) endpoint")
+
     bucket_name = get_new_bucket()
     client = get_client()
     key = "multipart_enc"
@@ -10512,6 +10518,7 @@ def test_encryption_sse_c_multipart_bad_download():
 def test_encryption_sse_c_post_object_authenticated_request():
     if not get_config_is_secure():
         pytest.skip("test requires secure (HTTPS) endpoint")
+
     bucket_name = get_new_bucket()
     client = get_client()
 
