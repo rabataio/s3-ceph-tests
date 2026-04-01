@@ -10166,6 +10166,7 @@ def test_encryption_sse_c_present():
     e = assert_raises(ClientError, client.get_object, Bucket=bucket_name, Key=key)
     status, error_code = _get_status_and_error_code(e.response)
     assert status == 400
+    assert error_code == 'InvalidRequest'
 
 @pytest.mark.encryption
 def test_encryption_sse_c_other_key():
@@ -10196,6 +10197,7 @@ def test_encryption_sse_c_other_key():
     e = assert_raises(ClientError, client.get_object, Bucket=bucket_name, Key=key)
     status, error_code = _get_status_and_error_code(e.response)
     assert status == 403
+    assert error_code == 'AccessDenied'
 
 @pytest.mark.encryption
 def test_encryption_sse_c_invalid_md5():
@@ -10435,6 +10437,7 @@ def test_encryption_sse_c_multipart_invalid_chunks_1():
             key=key, size=objlen, part_size=5*1024*1024, init_headers=init_headers, part_headers=part_headers, metadata=metadata, resend_parts=resend_parts)
     status, error_code = _get_status_and_error_code(e.response)
     assert status == 400
+    assert error_code == 'InvalidRequest'
 
 @pytest.mark.encryption
 # TODO: remove this fails_on_rgw when I fix it
@@ -10463,6 +10466,7 @@ def test_encryption_sse_c_multipart_invalid_chunks_2():
             key=key, size=objlen, part_size=5*1024*1024, init_headers=init_headers, part_headers=part_headers, metadata=metadata, resend_parts=resend_parts)
     status, error_code = _get_status_and_error_code(e.response)
     assert status == 400
+    assert error_code == 'InvalidArgument'
 
 @pytest.mark.encryption
 def test_encryption_sse_c_multipart_bad_download():
@@ -10511,6 +10515,7 @@ def test_encryption_sse_c_multipart_bad_download():
     e = assert_raises(ClientError, client.get_object, Bucket=bucket_name, Key=key)
     status, error_code = _get_status_and_error_code(e.response)
     assert status == 403
+    assert error_code == 'AccessDenied'
 
 
 @pytest.mark.encryption
