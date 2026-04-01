@@ -10414,6 +10414,9 @@ def test_encryption_sse_c_unaligned_multipart_upload():
 # TODO: remove this fails_on_rgw when I fix it
 @pytest.mark.fails_on_rgw
 def test_encryption_sse_c_multipart_invalid_chunks_1():
+    if not get_config_is_secure():
+        pytest.skip("test requires secure (HTTPS) endpoint")
+
     bucket_name = get_new_bucket()
     client = get_client()
     key = "multipart_enc"
@@ -10443,6 +10446,9 @@ def test_encryption_sse_c_multipart_invalid_chunks_1():
 # TODO: remove this fails_on_rgw when I fix it
 @pytest.mark.fails_on_rgw
 def test_encryption_sse_c_multipart_invalid_chunks_2():
+    if not get_config_is_secure():
+        pytest.skip("test requires secure (HTTPS) endpoint")
+
     bucket_name = get_new_bucket()
     client = get_client()
     key = "multipart_enc"
