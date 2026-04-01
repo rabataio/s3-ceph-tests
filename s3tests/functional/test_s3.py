@@ -682,7 +682,7 @@ def test_encryption_sse_c_multipart_invalid_chunks_1():
                       _multipart_upload_enc, bucket, key, objlen,
                       init_headers=init_headers, part_headers=part_headers,
                       metadata={'foo': 'bar'})
-    assert e.status == 403
+    assert e.status == 400
 
 @pytest.mark.encryption
 @pytest.mark.fails_on_dbstore
@@ -706,7 +706,7 @@ def test_encryption_sse_c_multipart_invalid_chunks_2():
                       _multipart_upload_enc, bucket, key, objlen,
                       init_headers=init_headers, part_headers=part_headers,
                       metadata={'foo': 'bar'})
-    assert e.status == 403
+    assert e.status == 400
 
 @pytest.mark.fails_with_subdomain
 @pytest.mark.bucket_policy
