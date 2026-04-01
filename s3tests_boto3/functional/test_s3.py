@@ -1435,7 +1435,8 @@ def test_bucket_list_return_data_versioning():
         data.update({
             key_name: {
                 'ID': acl_response['Owner']['ID'],
-                'DisplayName': acl_response['Owner']['DisplayName'],
+                # NOTE: Does not return by AWS
+                #'DisplayName': acl_response['Owner']['DisplayName']
                 'ETag': obj_response['ETag'],
                 'LastModified': obj_response['LastModified'],
                 'ContentLength': obj_response['ContentLength'],
@@ -1449,7 +1450,8 @@ def test_bucket_list_return_data_versioning():
     for obj in objs_list:
         key_name = obj['Key']
         key_data = data[key_name]
-        assert obj['Owner']['DisplayName'] == key_data['DisplayName']
+        # NOTE: Does not return by AWS
+        # assert obj['Owner']['DisplayName'] == key_data['DisplayName']
         assert obj['ETag'] == key_data['ETag']
         assert obj['Size'] == key_data['ContentLength']
         assert obj['Owner']['ID'] == key_data['ID']
@@ -3885,9 +3887,9 @@ def check_grants(got, want):
     assert len(got) == len(want)
 
     # There are instances when got does not match due the order of item.
-    if got[0]["Grantee"].get("DisplayName"):
-        got.sort(key=lambda x: x["Grantee"].get("DisplayName") or "")
-        want.sort(key=lambda x: x.get("DisplayName") or "")
+    # NOTE: sort by Permission since DisplayName may not be present (not supported by RCS)
+    got.sort(key=lambda x: x.get("Permission", "") or "")
+    want.sort(key=lambda x: x.get("Permission", "") or "")
 
     for g, w in zip(got, want):
         w = dict(w)
@@ -8086,7 +8088,8 @@ def test_versioned_object_acl():
     display_name = get_main_display_name()
     user_id = get_main_user_id()
 
-    assert response['Owner']['DisplayName'] == display_name
+    # NOTE: Does not return by AWS
+    # assert response['Owner']['DisplayName'] == display_name
     assert response['Owner']['ID'] == user_id
 
     grants = response['Grants']
@@ -8154,8 +8157,9 @@ def test_versioned_object_acl_no_version_specified():
 
     display_name = get_main_display_name()
     user_id = get_main_user_id()
-
-    assert response['Owner']['DisplayName'] == display_name
+    
+    # NOTE: Does not return by AWS
+    # assert response['Owner']['DisplayName'] == display_name
     assert response['Owner']['ID'] == user_id
 
     grants = response['Grants']
