@@ -9294,6 +9294,9 @@ def _test_encryption_sse_customer_write(file_size):
     Create a file of B's, use it to re-set_contents_from_file.
     Re-read the contents, and confirm we get B's
     """
+    if not get_config_is_secure():
+        pytest.skip("test requires secure (HTTPS) endpoint")
+
     bucket_name = get_new_bucket()
     client = get_client()
     key = 'testobj'
@@ -10115,6 +10118,9 @@ def test_encrypted_transfer_13b():
 
 @pytest.mark.encryption
 def test_encryption_sse_c_method_head():
+    if not get_config_is_secure():
+        pytest.skip("test requires secure (HTTPS) endpoint")
+
     bucket_name = get_new_bucket()
     client = get_client()
     data = 'A'*1000
@@ -10140,6 +10146,9 @@ def test_encryption_sse_c_method_head():
 
 @pytest.mark.encryption
 def test_encryption_sse_c_present():
+    if not get_config_is_secure():
+        pytest.skip("test requires secure (HTTPS) endpoint")
+
     bucket_name = get_new_bucket()
     client = get_client()
     data = 'A'*1000
@@ -10157,9 +10166,13 @@ def test_encryption_sse_c_present():
     e = assert_raises(ClientError, client.get_object, Bucket=bucket_name, Key=key)
     status, error_code = _get_status_and_error_code(e.response)
     assert status == 400
+    assert error_code == 'InvalidRequest'
 
 @pytest.mark.encryption
 def test_encryption_sse_c_other_key():
+    if not get_config_is_secure():
+        pytest.skip("test requires secure (HTTPS) endpoint")
+
     bucket_name = get_new_bucket()
     client = get_client()
     data = 'A'*100
@@ -10183,7 +10196,8 @@ def test_encryption_sse_c_other_key():
     client.meta.events.register('before-call.s3.GetObject', lf)
     e = assert_raises(ClientError, client.get_object, Bucket=bucket_name, Key=key)
     status, error_code = _get_status_and_error_code(e.response)
-    assert status == 400
+    assert status == 403
+    assert error_code == 'AccessDenied'
 
 @pytest.mark.encryption
 def test_encryption_sse_c_invalid_md5():
@@ -10301,6 +10315,9 @@ def _check_content_using_range_enc(client, bucket_name, key, data, size, step, e
 @pytest.mark.encryption
 @pytest.mark.fails_on_dbstore
 def test_encryption_sse_c_multipart_upload():
+    if not get_config_is_secure():
+        pytest.skip("test requires secure (HTTPS) endpoint")
+
     bucket_name = get_new_bucket()
     client = get_client()
     key = "multipart_enc"
@@ -10347,6 +10364,9 @@ def test_encryption_sse_c_multipart_upload():
 @pytest.mark.encryption
 @pytest.mark.fails_on_dbstore
 def test_encryption_sse_c_unaligned_multipart_upload():
+    if not get_config_is_secure():
+        pytest.skip("test requires secure (HTTPS) endpoint")
+
     bucket_name = get_new_bucket()
     client = get_client()
     key = "multipart_enc"
@@ -10394,6 +10414,9 @@ def test_encryption_sse_c_unaligned_multipart_upload():
 # TODO: remove this fails_on_rgw when I fix it
 @pytest.mark.fails_on_rgw
 def test_encryption_sse_c_multipart_invalid_chunks_1():
+    if not get_config_is_secure():
+        pytest.skip("test requires secure (HTTPS) endpoint")
+
     bucket_name = get_new_bucket()
     client = get_client()
     key = "multipart_enc"
@@ -10417,11 +10440,15 @@ def test_encryption_sse_c_multipart_invalid_chunks_1():
             key=key, size=objlen, part_size=5*1024*1024, init_headers=init_headers, part_headers=part_headers, metadata=metadata, resend_parts=resend_parts)
     status, error_code = _get_status_and_error_code(e.response)
     assert status == 400
+    assert error_code == 'InvalidRequest'
 
 @pytest.mark.encryption
 # TODO: remove this fails_on_rgw when I fix it
 @pytest.mark.fails_on_rgw
 def test_encryption_sse_c_multipart_invalid_chunks_2():
+    if not get_config_is_secure():
+        pytest.skip("test requires secure (HTTPS) endpoint")
+
     bucket_name = get_new_bucket()
     client = get_client()
     key = "multipart_enc"
@@ -10445,9 +10472,13 @@ def test_encryption_sse_c_multipart_invalid_chunks_2():
             key=key, size=objlen, part_size=5*1024*1024, init_headers=init_headers, part_headers=part_headers, metadata=metadata, resend_parts=resend_parts)
     status, error_code = _get_status_and_error_code(e.response)
     assert status == 400
+    assert error_code == 'InvalidArgument'
 
 @pytest.mark.encryption
 def test_encryption_sse_c_multipart_bad_download():
+    if not get_config_is_secure():
+        pytest.skip("test requires secure (HTTPS) endpoint")
+
     bucket_name = get_new_bucket()
     client = get_client()
     key = "multipart_enc"
@@ -10489,12 +10520,16 @@ def test_encryption_sse_c_multipart_bad_download():
     client.meta.events.register('before-call.s3.GetObject', lf)
     e = assert_raises(ClientError, client.get_object, Bucket=bucket_name, Key=key)
     status, error_code = _get_status_and_error_code(e.response)
-    assert status == 400
+    assert status == 403
+    assert error_code == 'AccessDenied'
 
 
 @pytest.mark.encryption
 @pytest.mark.fails_on_dbstore
 def test_encryption_sse_c_post_object_authenticated_request():
+    if not get_config_is_secure():
+        pytest.skip("test requires secure (HTTPS) endpoint")
+
     bucket_name = get_new_bucket()
     client = get_client()
 
