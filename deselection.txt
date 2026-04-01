@@ -233,13 +233,6 @@ s3tests_boto3/functional/test_s3.py::test_multipart_sse_c_get_part
 s3tests_boto3/functional/test_s3.py::test_non_multipart_sse_c_get_part
 s3tests_boto3/functional/test_s3.py::test_bucket_policy_put_obj_s3_incorrect_algo_sse_s3
 
-# Encryption SSE-C
-# NOTE: boto2 sorts canonical headers as "name:value" strings instead of by name only.
-# '-' (45) < ':' (58), so "customer-key-md5" sorts before "customer-key" → SignatureDoesNotMatch.
-# https://github.com/boto/boto/blob/develop/boto/auth.py#L414
-s3tests/functional/test_s3.py::test_encryption_sse_c_multipart_invalid_chunks_1
-s3tests/functional/test_s3.py::test_encryption_sse_c_multipart_invalid_chunks_2
-
 # NotImplemented - Encryption SSE KMS
 s3tests_boto3/functional/test_s3.py::test_sse_kms_method_head
 s3tests_boto3/functional/test_s3.py::test_sse_kms_present
@@ -561,6 +554,12 @@ s3tests_boto3/functional/test_s3.py::test_cors_presigned_put_object_tenant_v2
 
 # Skipped - AWS doesn't allow to recreate bucket with new ACL, because it require PublicAccessBlock.
 s3tests_boto3/functional/test_s3.py::test_bucket_recreate_new_acl
+
+# Skipped - Encryption SSE-C boto2 sorts canonical headers as "name:value" strings instead of by name only.
+# '-' (45) < ':' (58), so "customer-key-md5" sorts before "customer-key" → SignatureDoesNotMatch.
+# https://github.com/boto/boto/blob/develop/boto/auth.py#L414
+s3tests/functional/test_s3.py::test_encryption_sse_c_multipart_invalid_chunks_1
+s3tests/functional/test_s3.py::test_encryption_sse_c_multipart_invalid_chunks_2
 
 # Skipped - Tests not related to s3
 s3tests_boto3/functional/test_iam.py::test_put_user_policy
