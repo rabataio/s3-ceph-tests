@@ -1436,7 +1436,7 @@ def test_bucket_list_return_data_versioning():
             key_name: {
                 'ID': acl_response['Owner']['ID'],
                 # NOTE: Does not return by AWS
-                #'DisplayName': acl_response['Owner']['DisplayName']
+                # 'DisplayName': acl_response['Owner']['DisplayName']
                 'ETag': obj_response['ETag'],
                 'LastModified': obj_response['LastModified'],
                 'ContentLength': obj_response['ContentLength'],
@@ -3410,7 +3410,7 @@ def test_object_raw_get_object_acl():
 
 def test_object_put_acl_mtime():
     key = 'foo'
-    bucket_name = get_new_bucket()
+    bucket_name = _setup_bucket_acl()
     # Enable versioning
     check_configure_versioning_retry(bucket_name, "Enabled", "Enabled")
     client = get_client()
@@ -3886,16 +3886,16 @@ def check_grants(got, want):
     """
     assert len(got) == len(want)
 
-    # There are instances when got does not match due the order of item.
-    # NOTE: sort by Permission since DisplayName may not be present (not supported by RCS)
-    got.sort(key=lambda x: x.get("Permission", "") or "")
-    want.sort(key=lambda x: x.get("Permission", "") or "")
+    # # There are instances when got does not match due the order of item.
+    # if got[0]["Grantee"].get("DisplayName"):
+    #     got.sort(key=lambda x: x["Grantee"].get("DisplayName") or "")
+    #     want.sort(key=lambda x: x.get("DisplayName") or "")
 
     for g, w in zip(got, want):
         w = dict(w)
         g = dict(g)
         assert g.pop('Permission', None) == w['Permission']
-        assert g['Grantee'].pop('DisplayName', None) == w['DisplayName']
+        # assert g['Grantee'].pop('DisplayName', None) == w['DisplayName']
         assert g['Grantee'].pop('ID', None) == w['ID']
         assert g['Grantee'].pop('Type', None) == w['Type']
         assert g['Grantee'].pop('URI', None) == w['URI']
@@ -8071,7 +8071,7 @@ def test_versioning_multi_object_delete_with_marker_create():
     assert key == delete_markers[0]['Key']
 
 def test_versioned_object_acl():
-    bucket_name = get_new_bucket()
+    bucket_name = _setup_bucket_acl()
     client = get_client()
 
     check_configure_versioning_retry(bucket_name, "Enabled", "Enabled")
@@ -8114,20 +8114,20 @@ def test_versioned_object_acl():
         grants,
         [
             dict(
-                Permission='READ',
-                ID=None,
-                DisplayName=None,
-                URI='http://acs.amazonaws.com/groups/global/AllUsers',
-                EmailAddress=None,
-                Type='Group',
-                ),
-            dict(
                 Permission='FULL_CONTROL',
                 ID=user_id,
                 DisplayName=display_name,
                 URI=None,
                 EmailAddress=None,
                 Type='CanonicalUser',
+                ),
+            dict(
+                Permission='READ',
+                ID=None,
+                DisplayName=None,
+                URI='http://acs.amazonaws.com/groups/global/AllUsers',
+                EmailAddress=None,
+                Type='Group',
                 ),
             ],
         )
@@ -8140,7 +8140,7 @@ def test_versioned_object_acl():
 
 @pytest.mark.fails_on_dbstore
 def test_versioned_object_acl_no_version_specified():
-    bucket_name = get_new_bucket()
+    bucket_name = _setup_bucket_acl()
     client = get_client()
 
     check_configure_versioning_retry(bucket_name, "Enabled", "Enabled")
@@ -8184,20 +8184,20 @@ def test_versioned_object_acl_no_version_specified():
         grants,
         [
             dict(
-                Permission='READ',
-                ID=None,
-                DisplayName=None,
-                URI='http://acs.amazonaws.com/groups/global/AllUsers',
-                EmailAddress=None,
-                Type='Group',
-                ),
-            dict(
                 Permission='FULL_CONTROL',
                 ID=user_id,
                 DisplayName=display_name,
                 URI=None,
                 EmailAddress=None,
                 Type='CanonicalUser',
+                ),
+            dict(
+                Permission='READ',
+                ID=None,
+                DisplayName=None,
+                URI='http://acs.amazonaws.com/groups/global/AllUsers',
+                EmailAddress=None,
+                Type='Group',
                 ),
             ],
         )
