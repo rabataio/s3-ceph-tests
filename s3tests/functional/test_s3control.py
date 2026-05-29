@@ -5,11 +5,12 @@ import pytest
 
 from . import (
     configfile,
+    create_bucket,
     setup_teardown,
     get_iam_root_client,
     get_iam_root_account_id,
     get_new_bucket_name,
-    )
+)
 from .utils import (
     assert_raises,
     _get_status_and_error_code,
@@ -50,10 +51,10 @@ def test_account_public_access_block():
         bucket = get_new_bucket_name()
 
         # reject CreateBucket with public acls
-        e = assert_raises(ClientError, s3.create_bucket, Bucket=bucket, ACL='public-read')
+        e = assert_raises(ClientError, create_bucket, s3, Bucket=bucket, ACL='public-read')
         assert (403, 'AccessDenied') == _get_status_and_error_code(e.response)
 
-        s3.create_bucket(Bucket=bucket)
+        create_bucket(s3, Bucket=bucket)
         try:
             # reject PutBucketAcl with public acls
             e = assert_raises(ClientError, s3.put_bucket_acl, Bucket=bucket, ACL='public-read')

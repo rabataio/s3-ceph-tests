@@ -4154,20 +4154,20 @@ def test_put_bucket_acl_grant_group_read():
         response['Grants'],
         [
             dict(
-                Permission='READ',
-                ID=None,
-                DisplayName=None,
-                URI='http://acs.amazonaws.com/groups/global/AllUsers',
-                EmailAddress=None,
-                Type='Group',
-                ),
-            dict(
                 Permission='FULL_CONTROL',
                 ID=user_id,
                 DisplayName=display_name,
                 URI=None,
                 EmailAddress=None,
                 Type='CanonicalUser',
+                ),
+            dict(
+                Permission='READ',
+                ID=None,
+                DisplayName=None,
+                URI='http://acs.amazonaws.com/groups/global/AllUsers',
+                EmailAddress=None,
+                Type='Group',
                 ),
             ],
         )
@@ -16102,8 +16102,8 @@ def test_bucket_logging_requester_assumed_role():
 
         src_bucket_name = get_new_bucket_name()
         log_bucket_name = get_new_bucket_name()
-        role_s3.create_bucket(Bucket=src_bucket_name)
-        role_s3.create_bucket(Bucket=log_bucket_name)
+        create_bucket(role_s3, Bucket=src_bucket_name)
+        create_bucket(role_s3, Bucket=log_bucket_name)
         prefix = 'log/'
         _set_log_bucket_policy_tenant(role_s3, "", log_bucket_name, "", alt_user_id, [src_bucket_name], [prefix])
 
@@ -18258,7 +18258,7 @@ def test_bucket_logging_object_meta():
         pytest.skip('ceph extension to bucket logging not supported at client')
     client = get_client()
     src_bucket_name = get_new_bucket_name()
-    src_bucket = client.create_bucket(Bucket=src_bucket_name, ObjectLockEnabledForBucket=True)
+    src_bucket = create_bucket(client, Bucket=src_bucket_name, ObjectLockEnabledForBucket=True)
     log_bucket_name = get_new_bucket_name()
     log_bucket = get_new_bucket_resource(name=log_bucket_name)
 
@@ -20362,7 +20362,7 @@ def test_create_bucket_bucket_owner_enforced():
     client = get_client()
     bucket_owner = (get_main_user_id(), get_main_display_name())
     bucket = get_new_bucket_name()
-    client.create_bucket(Bucket=bucket, ObjectOwnership='BucketOwnerEnforced')
+    create_bucket(client, Bucket=bucket, ObjectOwnership='BucketOwnerEnforced')
     assert 'BucketOwnerEnforced' == get_bucket_ownership(client, bucket)
     # add public bucket policy and test with 'alt' user
     client.put_bucket_policy(Bucket=bucket, Policy=public_bucket_policy(bucket))
@@ -20374,7 +20374,7 @@ def test_create_bucket_bucket_owner_preferred():
     client = get_client()
     bucket_owner = (get_main_user_id(), get_main_display_name())
     bucket = get_new_bucket_name()
-    client.create_bucket(Bucket=bucket, ObjectOwnership='BucketOwnerPreferred')
+    create_bucket(client, Bucket=bucket, ObjectOwnership='BucketOwnerPreferred')
     assert 'BucketOwnerPreferred' == get_bucket_ownership(client, bucket)
     # add public bucket policy and test with 'alt' user
     client.put_bucket_policy(Bucket=bucket, Policy=public_bucket_policy(bucket))
@@ -20386,7 +20386,7 @@ def test_create_bucket_object_writer():
     client = get_client()
     bucket_owner = (get_main_user_id(), get_main_display_name())
     bucket = get_new_bucket_name()
-    client.create_bucket(Bucket=bucket, ObjectOwnership='ObjectWriter')
+    create_bucket(client, Bucket=bucket, ObjectOwnership='ObjectWriter')
     assert 'ObjectWriter' == get_bucket_ownership(client, bucket)
     # add public bucket policy and test with 'alt' user
     client.put_bucket_policy(Bucket=bucket, Policy=public_bucket_policy(bucket))
@@ -20401,7 +20401,7 @@ def test_put_bucket_ownership_bucket_owner_enforced():
     ownership = {'Rules': [{'ObjectOwnership': 'BucketOwnerEnforced'}]}
 
     # expect PutBucketOwnershipControls to fail with public-read ACL
-    client.create_bucket(Bucket=bucket, ACL='public-read')
+    create_bucket(client, Bucket=bucket, ACL='public-read')
     e = assert_raises(ClientError, client.put_bucket_ownership_controls,
                       Bucket=bucket, OwnershipControls=ownership)
     status, error_code = _get_status_and_error_code(e.response)
@@ -20783,6 +20783,8 @@ def test_copy_part_enc(source_mode_key, dest_mode_key, source_storage_class, des
         f"Testing copy part from {source_mode_key} to {dest_mode_key} with storage class "
         f"{source_storage_class} -> {dest_storage_class} and object size {obj_size}"
     )
+    if not get_config_is_secure() and 'sse-c' in (source_mode_key, dest_mode_key):
+        pytest.skip("test requires secure (HTTPS) endpoint")
     _test_copy_part_enc(obj_size, source_mode_key, dest_mode_key, source_storage_class, dest_storage_class)
 
 def generate_copy_enc_params():
@@ -20828,6 +20830,8 @@ def test_copy_enc(source_mode_key, dest_mode_key, source_storage_class, dest_sto
         f"Testing copy from {source_mode_key} to {dest_mode_key} with storage class "
         f"{source_storage_class} -> {dest_storage_class} and object size {obj_size}"
     )
+    if not get_config_is_secure() and 'sse-c' in (source_mode_key, dest_mode_key):
+        pytest.skip("test requires secure (HTTPS) endpoint")
     _test_copy_enc(obj_size, source_mode_key, dest_mode_key, source_storage_class, dest_storage_class)
 
 def generate_lifecycle_transition_params():
