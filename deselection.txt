@@ -4,6 +4,41 @@ s3tests/functional/test_headers.py::test_object_create_bad_authorization_none
 s3tests/functional/test_s3.py::test_object_anon_put
 s3tests/functional/test_s3.py::test_object_anon_put_write_access
 
+# NotImplemented - Modification preconditions
+s3tests/functional/test_s3.py::test_put_object_if_match
+s3tests/functional/test_s3.py::test_put_object_ifmatch_good
+s3tests/functional/test_s3.py::test_put_object_ifmatch_failed
+s3tests/functional/test_s3.py::test_put_object_ifmatch_overwrite_existed_good
+s3tests/functional/test_s3.py::test_put_object_ifmatch_nonexisted_failed
+s3tests/functional/test_s3.py::test_put_object_ifnonmatch_good
+s3tests/functional/test_s3.py::test_put_object_ifnonmatch_failed
+s3tests/functional/test_s3.py::test_put_object_ifnonmatch_nonexisted_good
+s3tests/functional/test_s3.py::test_put_object_ifnonmatch_overwrite_existed_failed
+s3tests/functional/test_s3.py::test_put_current_object_if_none_match
+s3tests/functional/test_s3.py::test_delete_object_if_match
+s3tests/functional/test_s3.py::test_delete_object_current_if_match
+s3tests/functional/test_s3.py::test_multipart_put_current_object_if_none_match
+s3tests/functional/test_s3.py::test_delete_object_version_if_match
+s3tests/functional/test_s3.py::test_put_current_object_if_match
+s3tests/functional/test_s3.py::test_delete_object_if_match_last_modified_time
+s3tests/functional/test_s3.py::test_multipart_put_current_object_if_match
+s3tests/functional/test_s3.py::test_delete_object_current_if_match_last_modified_time
+s3tests/functional/test_s3.py::test_put_object_current_if_match
+s3tests/functional/test_s3.py::test_multipart_put_object_if_match
+s3tests/functional/test_s3.py::test_delete_object_version_if_match_last_modified_time
+s3tests/functional/test_s3.py::test_delete_object_version_if_match_size
+s3tests/functional/test_s3.py::test_delete_object_if_match_size
+s3tests/functional/test_s3.py::test_delete_objects_if_match
+s3tests/functional/test_s3.py::test_delete_object_current_if_match_size
+s3tests/functional/test_s3.py::test_delete_objects_current_if_match
+s3tests/functional/test_s3.py::test_delete_objects_if_match_size
+s3tests/functional/test_s3.py::test_delete_objects_version_if_match
+s3tests/functional/test_s3.py::test_delete_objects_current_if_match_size
+s3tests/functional/test_s3.py::test_delete_objects_if_match_last_modified_time
+s3tests/functional/test_s3.py::test_delete_objects_version_if_match_size
+s3tests/functional/test_s3.py::test_delete_objects_current_if_match_last_modified_time
+s3tests/functional/test_s3.py::test_delete_objects_version_if_match_last_modified_time
+
 # NotImplemented - ObjectAttributes
 s3tests/functional/test_s3.py::test_get_paginated_multipart_object_attributes
 s3tests/functional/test_s3.py::test_get_multipart_object_attributes
@@ -16,15 +51,31 @@ s3tests/functional/test_s3.py::test_get_object_attributes
 # NotImplemented - Checksum
 s3tests/functional/test_s3.py::test_object_checksum_sha256
 s3tests/functional/test_s3.py::test_multipart_checksum_sha256
-s3tests/functional/test_s3.py::test_multipart_checksum_3parts
-s3tests/functional/test_s3.py::test_multipart_checksum_upload_fallback
 s3tests/functional/test_s3.py::test_post_object_upload_checksum
 s3tests/functional/test_s3.py::test_get_multipart_checksum_object_attributes
+s3tests/functional/test_s3.py::test_object_checksum_crc64nvme
+s3tests/functional/test_s3.py::test_multipart_use_cksum_helper_sha256
+s3tests/functional/test_s3.py::test_multipart_use_cksum_helper_crc64nvme
+s3tests/functional/test_s3.py::test_multipart_use_cksum_helper_crc32
+s3tests/functional/test_s3.py::test_multipart_use_cksum_helper_crc32c
+s3tests/functional/test_s3.py::test_multipart_use_cksum_helper_sha1
+s3tests/functional/test_s3.py::test_multipart_reupload_checksum_and_etag
+
+# NotImplemented - ListBuckets pagination
+s3tests/functional/test_s3.py::test_list_buckets_paginated
+
+# NotImplemented - BucketOwnership
+s3tests/functional/test_s3.py::test_create_bucket_no_ownership_controls
+s3tests/functional/test_s3.py::test_create_bucket_bucket_owner_enforced
+s3tests/functional/test_s3.py::test_create_bucket_bucket_owner_preferred
+s3tests/functional/test_s3.py::test_create_bucket_object_writer
+s3tests/functional/test_s3.py::test_put_bucket_ownership_bucket_owner_enforced
+s3tests/functional/test_s3.py::test_put_bucket_ownership_bucket_owner_preferred
+s3tests/functional/test_s3.py::test_put_bucket_ownership_object_writer
+s3tests/functional/test_s3.py::test_bucket_create_delete_bucket_ownership
 
 # NotImplemented - ExpectedBucketOwner
 s3tests/functional/test_s3.py::test_expected_bucket_owner
-
-# Skipped - No RequestTimeout with Nginx
 
 # Failed - RCS return NoSuchUpload for the repeated CompleteMultipartUpload requests
 s3tests/functional/test_s3.py::test_multipart_upload_small
@@ -33,19 +84,12 @@ s3tests/functional/test_s3.py::test_multipart_upload
 # Failed - unicode metadata convert issue
 s3tests/functional/test_s3.py::test_object_set_get_unicode_metadata
 
+# Failed - AWS didn't cleanup aws-chunked in some cases, need to investigate when
+s3tests/functional/test_s3.py::test_object_content_encoding_aws_chunked
+
 # NotImplemented - Bucket ACL email not supported
 s3tests/functional/test_s3.py::test_bucket_acl_grant_email
 s3tests/functional/test_s3.py::test_bucket_acl_grant_email_not_exist
-
-# NotImplemented - PutObject Conditions
-s3tests/functional/test_s3.py::test_put_object_ifmatch_good
-s3tests/functional/test_s3.py::test_put_object_ifmatch_failed
-s3tests/functional/test_s3.py::test_put_object_ifmatch_overwrite_existed_good
-s3tests/functional/test_s3.py::test_put_object_ifmatch_nonexisted_failed
-s3tests/functional/test_s3.py::test_put_object_ifnonmatch_good
-s3tests/functional/test_s3.py::test_put_object_ifnonmatch_failed
-s3tests/functional/test_s3.py::test_put_object_ifnonmatch_nonexisted_good
-s3tests/functional/test_s3.py::test_put_object_ifnonmatch_overwrite_existed_failed
 
 # NotImplemented - CORS
 s3tests/functional/test_s3.py::test_set_cors
@@ -56,8 +100,6 @@ s3tests/functional/test_s3.py::test_cors_presigned_get_object
 s3tests/functional/test_s3.py::test_cors_presigned_put_object
 s3tests/functional/test_s3.py::test_cors_presigned_put_object_with_acl
 s3tests/functional/test_s3.py::test_object_raw_get_x_amz_expires_not_expired
-
-# NotImplemented - Multiple storage classes
 
 # NotImplemented - BucketPolicy
 s3tests/functional/test_s3.py::test_get_tags_acl_public
@@ -89,6 +131,7 @@ s3tests/functional/test_s3.py::test_bucket_policy_upload_part_copy
 s3tests/functional/test_s3.py::test_bucket_policy_multipart
 s3tests/functional/test_s3.py::test_bucket_policy_deny_self_denied_policy
 s3tests/functional/test_s3.py::test_bucket_policy_deny_self_denied_policy_confirm_header
+s3tests/functional/test_s3.py::test_head_object_404_with_policy_prefix
 
 # NotImplemented - Object lock
 s3tests/functional/test_s3.py::test_object_lock_put_obj_lock
@@ -137,13 +180,11 @@ s3tests/functional/test_s3.py::test_get_authpublic_acl_bucket_policy_status
 s3tests/functional/test_s3.py::test_get_bucket_policy_status
 s3tests/functional/test_s3.py::test_get_publicpolicy_acl_bucket_policy_status
 s3tests/functional/test_s3.py::test_get_nonpublicpolicy_acl_bucket_policy_status
-s3tests/functional/test_s3.py::test_get_nonpublicpolicy_deny_bucket_policy_status
 
 # NotImplemented - PublicAccessBlock
 s3tests/functional/test_s3.py::test_block_public_put_bucket_acls
 s3tests/functional/test_s3.py::test_block_public_object_canned_acls
 s3tests/functional/test_s3.py::test_block_public_policy
-s3tests/functional/test_s3.py::test_get_default_public_block
 s3tests/functional/test_s3.py::test_get_public_block_deny_bucket_policy
 s3tests/functional/test_s3.py::test_get_undefined_public_block
 s3tests/functional/test_s3.py::test_ignore_public_acls
@@ -152,6 +193,7 @@ s3tests/functional/test_s3.py::test_put_get_delete_public_block
 s3tests/functional/test_s3.py::test_get_nonpublicpolicy_principal_bucket_policy_status
 s3tests/functional/test_s3.py::test_bucket_policy_allow_notprincipal
 s3tests/functional/test_s3.py::test_block_public_policy_with_principal
+s3tests/functional/test_s3.py::test_block_public_restrict_public_buckets
 
 # NotImplemented - RestoreObject
 s3tests/functional/test_s3.py::test_read_through
@@ -269,12 +311,13 @@ s3tests/functional/test_s3.py::test_lifecycle_cloud_transition_large_obj
 s3tests/functional/test_s3.py::test_lifecycle_expiration_size_gt
 s3tests/functional/test_s3.py::test_lifecycle_expiration_newer_noncurrent
 s3tests/functional/test_s3.py::test_lifecycle_deletemarker_expiration_with_days_tag
+s3tests/functional/test_s3.py::test_lifecycle_delete
+s3tests/functional/test_s3.py::test_delete_marker_expiration
 
 # NotImplemented - GetObjectTorrent
 s3tests/functional/test_s3.py::test_get_object_torrent
 
 # NotImplemented - BucketLogging
-s3tests/functional/test_s3.py::test_logging_toggle
 s3tests/functional/test_s3.py::test_put_bucket_logging
 s3tests/functional/test_s3.py::test_put_bucket_logging_errors
 s3tests/functional/test_s3.py::test_put_bucket_logging_tenant_s
@@ -292,8 +335,8 @@ s3tests/functional/test_s3.py::test_bucket_logging_copy_objects_versioned
 s3tests/functional/test_s3.py::test_bucket_logging_head_objects
 s3tests/functional/test_s3.py::test_bucket_logging_copy_objects_bucket
 s3tests/functional/test_s3.py::test_bucket_logging_head_objects_versioned
-s3tests/functional/test_s3.py::test_bucket_logging_mpu
-s3tests/functional/test_s3.py::test_bucket_logging_mpu_versioned
+s3tests/functional/test_s3.py::test_bucket_logging_mpu_j
+s3tests/functional/test_s3.py::test_bucket_logging_mpu_versioned_j
 s3tests/functional/test_s3.py::test_bucket_logging_multiple_prefixes
 s3tests/functional/test_s3.py::test_bucket_logging_single_prefix
 s3tests/functional/test_s3.py::test_bucket_logging_mpu_copy
@@ -347,8 +390,25 @@ s3tests/functional/test_s3.py::test_bucket_logging_cleanup_concurrent_disabling_
 s3tests/functional/test_s3.py::test_bucket_logging_cleanup_concurrent_disabling_s_single
 s3tests/functional/test_s3.py::test_bucket_logging_cleanup_concurrent_updating_s
 s3tests/functional/test_s3.py::test_bucket_logging_cleanup_concurrent_updating_s_single
+s3tests/functional/test_s3.py::test_bucket_logging_mtime
+s3tests/functional/test_s3.py::test_bucket_logging_partitioned_key
+s3tests/functional/test_s3.py::test_put_bucket_logging_account_s
+s3tests/functional/test_s3.py::test_bucket_logging_bucket_auth_type
+s3tests/functional/test_s3.py::test_bucket_logging_mpu_s
+s3tests/functional/test_s3.py::test_bucket_logging_request_id
+s3tests/functional/test_s3.py::test_bucket_logging_requester_assumed_role
+s3tests/functional/test_s3.py::test_bucket_logging_mpu_versioned_s
+s3tests/functional/test_s3.py::test_bucket_logging_bucket_acl_required
+s3tests/functional/test_s3.py::test_bucket_logging_object_acl_required
+s3tests/functional/test_s3.py::test_bucket_logging_owner
+s3tests/functional/test_s3.py::test_put_bucket_logging_permissions
+s3tests/functional/test_s3.py::test_put_bucket_logging_policy_wildcard
+s3tests/functional/test_s3.py::test_put_bucket_logging_policy_wildcard_objects
+s3tests/functional/test_s3.py::test_bucket_logging_permission_change_s
+s3tests/functional/test_s3.py::test_bucket_logging_simple_key
 
-# NotImplemented - Website
+# NotImplemented - S3 Control
+s3tests/functional/test_s3control.py::test_account_public_access_block
 
 # NotImplemented - s3 Select
 s3tests/functional/test_s3select.py::test_generate_where_clause
@@ -366,10 +426,6 @@ s3tests/functional/test_s3select.py::test_in_expressions
 s3tests/functional/test_s3select.py::test_true_false_in_expressions
 s3tests/functional/test_s3select.py::test_like_expressions
 s3tests/functional/test_s3select.py::test_truefalselike_expressions
-s3tests/functional/test_s3select.py::test_nullif_expressions
-s3tests/functional/test_s3select.py::test_lowerupper_expressions
-s3tests/functional/test_s3select.py::test_in_expressions
-s3tests/functional/test_s3select.py::test_like_expressions
 s3tests/functional/test_s3select.py::test_complex_expressions
 s3tests/functional/test_s3select.py::test_alias
 s3tests/functional/test_s3select.py::test_alias_cyclic_refernce
@@ -418,13 +474,74 @@ s3tests/functional/test_headers.py::test_bucket_create_bad_date_after_today_aws2
 s3tests/functional/test_s3.py::test_cors_presigned_put_object_v2
 s3tests/functional/test_s3.py::test_cors_presigned_get_object_v2
 
+# NotImplemented - SSE-KMS encryption
+s3tests/functional/test_s3.py::test_copy_enc[sse-c-sse-kms-STANDARD-STANDARD-1]
+s3tests/functional/test_s3.py::test_copy_enc[sse-c-sse-kms-STANDARD-STANDARD-1024]
+s3tests/functional/test_s3.py::test_copy_enc[sse-c-sse-kms-STANDARD-STANDARD-1048576]
+s3tests/functional/test_s3.py::test_copy_enc[sse-c-sse-kms-STANDARD-STANDARD-8388608]
+s3tests/functional/test_s3.py::test_copy_enc[sse-kms-sse-c-STANDARD-STANDARD-1]
+s3tests/functional/test_s3.py::test_copy_enc[sse-kms-sse-c-STANDARD-STANDARD-1024]
+s3tests/functional/test_s3.py::test_copy_enc[sse-kms-sse-c-STANDARD-STANDARD-1048576]
+s3tests/functional/test_s3.py::test_copy_enc[sse-kms-sse-c-STANDARD-STANDARD-8388608]
+s3tests/functional/test_s3.py::test_copy_enc[sse-kms-sse-kms-STANDARD-STANDARD-1]
+s3tests/functional/test_s3.py::test_copy_enc[sse-kms-sse-kms-STANDARD-STANDARD-1024]
+s3tests/functional/test_s3.py::test_copy_enc[sse-kms-sse-kms-STANDARD-STANDARD-1048576]
+s3tests/functional/test_s3.py::test_copy_enc[sse-kms-sse-kms-STANDARD-STANDARD-8388608]
+s3tests/functional/test_s3.py::test_copy_enc[sse-kms-sse-s3-STANDARD-STANDARD-1]
+s3tests/functional/test_s3.py::test_copy_enc[sse-kms-sse-s3-STANDARD-STANDARD-1024]
+s3tests/functional/test_s3.py::test_copy_enc[sse-kms-sse-s3-STANDARD-STANDARD-1048576]
+s3tests/functional/test_s3.py::test_copy_enc[sse-kms-sse-s3-STANDARD-STANDARD-8388608]
+s3tests/functional/test_s3.py::test_copy_enc[sse-kms-unencrypted-STANDARD-STANDARD-1]
+s3tests/functional/test_s3.py::test_copy_enc[sse-kms-unencrypted-STANDARD-STANDARD-1024]
+s3tests/functional/test_s3.py::test_copy_enc[sse-kms-unencrypted-STANDARD-STANDARD-1048576]
+s3tests/functional/test_s3.py::test_copy_enc[sse-kms-unencrypted-STANDARD-STANDARD-8388608]
+s3tests/functional/test_s3.py::test_copy_enc[sse-s3-sse-kms-STANDARD-STANDARD-1]
+s3tests/functional/test_s3.py::test_copy_enc[sse-s3-sse-kms-STANDARD-STANDARD-1024]
+s3tests/functional/test_s3.py::test_copy_enc[sse-s3-sse-kms-STANDARD-STANDARD-1048576]
+s3tests/functional/test_s3.py::test_copy_enc[sse-s3-sse-kms-STANDARD-STANDARD-8388608]
+s3tests/functional/test_s3.py::test_copy_enc[unencrypted-sse-kms-STANDARD-STANDARD-1]
+s3tests/functional/test_s3.py::test_copy_enc[unencrypted-sse-kms-STANDARD-STANDARD-1024]
+s3tests/functional/test_s3.py::test_copy_enc[unencrypted-sse-kms-STANDARD-STANDARD-1048576]
+s3tests/functional/test_s3.py::test_copy_enc[unencrypted-sse-kms-STANDARD-STANDARD-8388608]
+s3tests/functional/test_s3.py::test_copy_enc[sse-c-sse-s3-STANDARD-STANDARD-1]
+s3tests/functional/test_s3.py::test_copy_enc[sse-c-sse-s3-STANDARD-STANDARD-1024]
+s3tests/functional/test_s3.py::test_copy_enc[sse-c-sse-s3-STANDARD-STANDARD-1048576]
+s3tests/functional/test_s3.py::test_copy_enc[sse-c-sse-s3-STANDARD-STANDARD-8388608]
+s3tests/functional/test_s3.py::test_copy_enc[sse-s3-sse-c-STANDARD-STANDARD-1]
+s3tests/functional/test_s3.py::test_copy_enc[sse-s3-sse-c-STANDARD-STANDARD-1024]
+s3tests/functional/test_s3.py::test_copy_enc[sse-s3-sse-c-STANDARD-STANDARD-1048576]
+s3tests/functional/test_s3.py::test_copy_enc[sse-s3-sse-c-STANDARD-STANDARD-8388608]
+s3tests/functional/test_s3.py::test_copy_enc[sse-s3-sse-s3-STANDARD-STANDARD-1]
+s3tests/functional/test_s3.py::test_copy_enc[sse-s3-sse-s3-STANDARD-STANDARD-1024]
+s3tests/functional/test_s3.py::test_copy_enc[sse-s3-sse-s3-STANDARD-STANDARD-1048576]
+s3tests/functional/test_s3.py::test_copy_enc[sse-s3-sse-s3-STANDARD-STANDARD-8388608]
+s3tests/functional/test_s3.py::test_copy_enc[sse-s3-unencrypted-STANDARD-STANDARD-1]
+s3tests/functional/test_s3.py::test_copy_enc[sse-s3-unencrypted-STANDARD-STANDARD-1024]
+s3tests/functional/test_s3.py::test_copy_enc[sse-s3-unencrypted-STANDARD-STANDARD-1048576]
+s3tests/functional/test_s3.py::test_copy_enc[sse-s3-unencrypted-STANDARD-STANDARD-8388608]
+s3tests/functional/test_s3.py::test_copy_enc[unencrypted-sse-s3-STANDARD-STANDARD-1]
+s3tests/functional/test_s3.py::test_copy_enc[unencrypted-sse-s3-STANDARD-STANDARD-1024]
+s3tests/functional/test_s3.py::test_copy_enc[unencrypted-sse-s3-STANDARD-STANDARD-1048576]
+s3tests/functional/test_s3.py::test_copy_enc[unencrypted-sse-s3-STANDARD-STANDARD-8388608]
+s3tests/functional/test_s3.py::test_copy_part_enc[sse-c-sse-s3-STANDARD-STANDARD-8388608]
+s3tests/functional/test_s3.py::test_copy_part_enc[sse-s3-sse-c-STANDARD-STANDARD-8388608]
+s3tests/functional/test_s3.py::test_copy_part_enc[sse-s3-sse-s3-STANDARD-STANDARD-8388608]
+s3tests/functional/test_s3.py::test_copy_part_enc[sse-s3-unencrypted-STANDARD-STANDARD-8388608]
+s3tests/functional/test_s3.py::test_copy_part_enc[unencrypted-sse-s3-STANDARD-STANDARD-8388608]
+s3tests/functional/test_s3.py::test_copy_part_enc[sse-c-sse-kms-STANDARD-STANDARD-8388608]
+s3tests/functional/test_s3.py::test_copy_part_enc[sse-kms-sse-c-STANDARD-STANDARD-8388608]
+s3tests/functional/test_s3.py::test_copy_part_enc[sse-kms-sse-kms-STANDARD-STANDARD-8388608]
+s3tests/functional/test_s3.py::test_copy_part_enc[sse-kms-sse-s3-STANDARD-STANDARD-8388608]
+s3tests/functional/test_s3.py::test_copy_part_enc[sse-kms-unencrypted-STANDARD-STANDARD-8388608]
+s3tests/functional/test_s3.py::test_copy_part_enc[sse-s3-sse-kms-STANDARD-STANDARD-8388608]
+s3tests/functional/test_s3.py::test_copy_part_enc[unencrypted-sse-kms-STANDARD-STANDARD-8388608]
+
 # Skipped - CEPH specific tests
 s3tests/functional/test_s3.py::test_account_usage
 s3tests/functional/test_s3.py::test_bucket_head_extended
 s3tests/functional/test_s3.py::test_bucket_list_unordered
 s3tests/functional/test_s3.py::test_bucket_listv2_unordered
 s3tests/functional/test_s3.py::test_bucket_policy_different_tenant
-s3tests/functional/test_s3.py::test_bucketv2_policy_different_tenant
 s3tests/functional/test_s3.py::test_cors_presigned_get_object_tenant
 s3tests/functional/test_s3.py::test_cors_presigned_put_object_tenant
 s3tests/functional/test_s3.py::test_cors_presigned_put_object_tenant_with_acl
@@ -439,9 +556,8 @@ s3tests/functional/test_s3.py::test_cors_presigned_put_object_tenant_v2
 # Skipped - AWS doesn't allow to recreate bucket with new ACL, because it require PublicAccessBlock.
 s3tests/functional/test_s3.py::test_bucket_recreate_new_acl
 
-# Skipped - Encryption SSE-C boto2 sorts canonical headers as "name:value" strings instead of by name only.
-# '-' (45) < ':' (58), so "customer-key-md5" sorts before "customer-key" → SignatureDoesNotMatch.
-# https://github.com/boto/boto/blob/develop/boto/auth.py#L414
+# Skipped - AWS doesn't return x-amz-delete-marker for nonversioned bucket
+s3tests/functional/test_s3.py::test_delete_marker_nonversioned
 
 # Skipped - Tests not related to s3
 s3tests/functional/test_iam.py::test_put_user_policy
@@ -531,8 +647,8 @@ s3tests/functional/test_sns.py::test_account_topic
 s3tests/functional/test_sns.py::test_cross_account_topic
 s3tests/functional/test_sns.py::test_account_topic_publish
 s3tests/functional/test_sns.py::test_cross_account_topic_publish
+s3tests/functional/test_sns.py::test_account_user_policy_list_topics
 s3tests/functional/test_sts.py::test_get_session_token
-s3tests/functional/test_sts.py::test_get_session_token_permanent_creds_denied
 s3tests/functional/test_sts.py::test_assume_role_allow
 s3tests/functional/test_sts.py::test_assume_role_deny
 s3tests/functional/test_sts.py::test_assume_role_creds_expiry
@@ -565,7 +681,13 @@ s3tests/functional/test_sts.py::test_assume_role_with_web_identity_wrong_resourc
 s3tests/functional/test_sts.py::test_assume_role_with_web_identity_resource_tag_princ_tag
 s3tests/functional/test_sts.py::test_assume_role_with_web_identity_resource_tag_copy_obj
 s3tests/functional/test_sts.py::test_assume_role_with_web_identity_role_resource_tag
+s3tests/functional/test_sts.py::test_get_caller_identity_after_assume_role
+s3tests/functional/test_sts.py::test_get_caller_identity_non_root_user
+s3tests/functional/test_sts.py::test_get_caller_identity_root
 s3tests/functional/test_iam.py::test_verify_add_new_client_id_to_oidc
 s3tests/functional/test_iam.py::test_verify_add_existing_client_id_to_oidc
 s3tests/functional/test_iam.py::test_verify_update_thumbprintlist_of_oidc
 s3tests/functional/test_iam.py::test_verify_remove_client_id_from_oidc
+s3tests/functional/test_iam.py::test_account_role_list_permission
+s3tests/functional/test_iam.py::test_get_account_summary_policy
+s3tests/functional/test_iam.py::test_get_account_summary_root

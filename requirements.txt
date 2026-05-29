@@ -1,6 +1,7 @@
 PyYAML
-boto3>=1.0.0
-botocore>=1.34.74
+# botocore 1.41.0 first ships the S3 BlockedEncryptionTypes field (SSE-C block/unblock)
+boto3>=1.41.0
+botocore>=1.41.0
 munch>=2.0.0
 # 0.14 switches to libev, that means bootstrap needs to change too
 isodate>=0.4.4
@@ -13,4 +14,5 @@ pytest-select>=0.1.2
 pytest-xdist>=3.5.0
 pytest-mock>=3.14.0
 pytest-freezegun>=0.4.2
+setuptools
 tox

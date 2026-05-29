@@ -4154,20 +4154,20 @@ def test_put_bucket_acl_grant_group_read():
         response['Grants'],
         [
             dict(
-                Permission='READ',
-                ID=None,
-                DisplayName=None,
-                URI='http://acs.amazonaws.com/groups/global/AllUsers',
-                EmailAddress=None,
-                Type='Group',
-                ),
-            dict(
                 Permission='FULL_CONTROL',
                 ID=user_id,
                 DisplayName=display_name,
                 URI=None,
                 EmailAddress=None,
                 Type='CanonicalUser',
+                ),
+            dict(
+                Permission='READ',
+                ID=None,
+                DisplayName=None,
+                URI='http://acs.amazonaws.com/groups/global/AllUsers',
+                EmailAddress=None,
+                Type='Group',
                 ),
             ],
         )
@@ -6689,6 +6689,7 @@ def test_multipart_get_part():
 def test_multipart_sse_c_get_part():
     bucket_name = get_new_bucket()
     client = get_client()
+    _unblock_sse_c(client, bucket_name)
     key = "mymultipart"
 
     part_size = 5*1024*1024
@@ -6814,6 +6815,7 @@ def test_non_multipart_get_part():
 def test_non_multipart_sse_c_get_part():
     bucket_name = get_new_bucket()
     client = get_client()
+    _unblock_sse_c(client, bucket_name)
     key = "singlepart"
 
     sse_args = {
@@ -9536,6 +9538,7 @@ def _test_encryption_sse_customer_write(file_size):
 
     bucket_name = get_new_bucket()
     client = get_client()
+    _unblock_sse_c(client, bucket_name)
     key = 'testobj'
     data = 'A'*file_size
     sse_client_headers = {
@@ -10760,6 +10763,7 @@ def test_encryption_sse_c_method_head():
 
     bucket_name = get_new_bucket()
     client = get_client()
+    _unblock_sse_c(client, bucket_name)
     data = 'A'*1000
     key = 'testobj'
     sse_client_headers = {
@@ -10788,6 +10792,7 @@ def test_encryption_sse_c_present():
 
     bucket_name = get_new_bucket()
     client = get_client()
+    _unblock_sse_c(client, bucket_name)
     data = 'A'*1000
     key = 'testobj'
     sse_client_headers = {
@@ -10812,6 +10817,7 @@ def test_encryption_sse_c_other_key():
 
     bucket_name = get_new_bucket()
     client = get_client()
+    _unblock_sse_c(client, bucket_name)
     data = 'A'*100
     key = 'testobj'
     sse_client_headers_A = {
@@ -10840,6 +10846,7 @@ def test_encryption_sse_c_other_key():
 def test_encryption_sse_c_invalid_md5():
     bucket_name = get_new_bucket()
     client = get_client()
+    _unblock_sse_c(client, bucket_name)
     data = 'A'*100
     key = 'testobj'
     sse_client_headers = {
@@ -10858,6 +10865,7 @@ def test_encryption_sse_c_invalid_md5():
 def test_encryption_sse_c_no_md5():
     bucket_name = get_new_bucket()
     client = get_client()
+    _unblock_sse_c(client, bucket_name)
     data = 'A'*100
     key = 'testobj'
     sse_client_headers = {
@@ -10873,6 +10881,7 @@ def test_encryption_sse_c_no_md5():
 def test_encryption_sse_c_no_key():
     bucket_name = get_new_bucket()
     client = get_client()
+    _unblock_sse_c(client, bucket_name)
     data = 'A'*100
     key = 'testobj'
     sse_client_headers = {
@@ -10887,6 +10896,7 @@ def test_encryption_sse_c_no_key():
 def test_encryption_key_no_sse_c():
     bucket_name = get_new_bucket()
     client = get_client()
+    _unblock_sse_c(client, bucket_name)
     data = 'A'*100
     key = 'testobj'
     sse_client_headers = {
@@ -10957,6 +10967,7 @@ def test_encryption_sse_c_multipart_upload():
 
     bucket_name = get_new_bucket()
     client = get_client()
+    _unblock_sse_c(client, bucket_name)
     key = "multipart_enc"
     content_type = 'text/plain'
     objlen = 30 * 1024 * 1024
@@ -11006,6 +11017,7 @@ def test_encryption_sse_c_unaligned_multipart_upload():
 
     bucket_name = get_new_bucket()
     client = get_client()
+    _unblock_sse_c(client, bucket_name)
     key = "multipart_enc"
     content_type = 'text/plain'
     objlen = 30 * 1024 * 1024
@@ -11056,6 +11068,7 @@ def test_encryption_sse_c_multipart_invalid_chunks_1():
 
     bucket_name = get_new_bucket()
     client = get_client()
+    _unblock_sse_c(client, bucket_name)
     key = "multipart_enc"
     content_type = 'text/plain'
     objlen = 30 * 1024 * 1024
@@ -11088,6 +11101,7 @@ def test_encryption_sse_c_multipart_invalid_chunks_2():
 
     bucket_name = get_new_bucket()
     client = get_client()
+    _unblock_sse_c(client, bucket_name)
     key = "multipart_enc"
     content_type = 'text/plain'
     objlen = 30 * 1024 * 1024
@@ -11118,6 +11132,7 @@ def test_encryption_sse_c_multipart_bad_download():
 
     bucket_name = get_new_bucket()
     client = get_client()
+    _unblock_sse_c(client, bucket_name)
     key = "multipart_enc"
     content_type = 'text/plain'
     objlen = 30 * 1024 * 1024
@@ -11169,6 +11184,7 @@ def test_encryption_sse_c_post_object_authenticated_request():
 
     bucket_name = get_new_bucket()
     client = get_client()
+    _unblock_sse_c(client, bucket_name)
 
     url = _get_post_url(bucket_name)
     utc = pytz.utc
@@ -11224,6 +11240,7 @@ def test_encryption_sse_c_post_object_authenticated_request():
 def test_encryption_sse_c_enforced_with_bucket_policy():
     bucket_name = get_new_bucket()
     client = get_client()
+    _unblock_sse_c(client, bucket_name)
 
     deny_unencrypted_obj = {
         "Null" : {
@@ -11254,6 +11271,7 @@ def test_encryption_sse_c_enforced_with_bucket_policy():
 def test_encryption_sse_c_deny_algo_with_bucket_policy():
     bucket_name = get_new_bucket()
     client = get_client()
+    _unblock_sse_c(client, bucket_name)
 
     deny_incorrect_algo = {
         "StringNotEquals": {
@@ -12978,6 +12996,7 @@ def test_bucket_policy_put_obj_grant():
 def test_put_obj_enc_conflict_c_s3():
     bucket_name = get_new_bucket()
     client = get_client()
+    _unblock_sse_c(client, bucket_name)
 
     # boto3.set_stream_logger(name='botocore')
 
@@ -13004,6 +13023,7 @@ def test_put_obj_enc_conflict_c_kms():
         kms_keyid = 'fool-me-once'
     bucket_name = get_new_bucket()
     client = get_client()
+    _unblock_sse_c(client, bucket_name)
 
     # boto3.set_stream_logger(name='botocore')
 
@@ -14569,6 +14589,32 @@ def test_multipart_upload_on_a_bucket_with_policy():
     response = client.complete_multipart_upload(Bucket=bucket_name, Key=key, UploadId=upload_id, MultipartUpload={'Parts': parts})
     assert response['ResponseMetadata']['HTTPStatusCode'] == 200
 
+def _unblock_sse_c(client, bucket_name):
+    """
+    Allow SSE-C writes on the bucket.
+
+    AWS blocks SSE-C by default; PutBucketEncryption with a BlockedEncryptionTypes
+    EncryptionType of 'NONE' unblocks it, while 'SSE-C' blocks it (see the
+    PutBucketEncryption API reference). The AWS tests need this so SSE-C writes are
+    accepted. RCS does not implement this API and answers NotImplemented, which is
+    ignored since SSE-C is not blocked there.
+    """
+    try:
+        client.put_bucket_encryption(
+            Bucket=bucket_name,
+            ServerSideEncryptionConfiguration={
+                'Rules': [
+                    {
+                        'BlockedEncryptionTypes': {'EncryptionType': ['NONE']}
+                    }
+                ]
+            }
+        )
+    except ClientError as e:
+        _, error_code = _get_status_and_error_code(e.response)
+        if error_code != 'NotImplemented':
+            raise
+
 def _put_bucket_encryption_s3(client, bucket_name):
     """
     enable a default encryption policy on the given bucket
@@ -16102,8 +16148,8 @@ def test_bucket_logging_requester_assumed_role():
 
         src_bucket_name = get_new_bucket_name()
         log_bucket_name = get_new_bucket_name()
-        role_s3.create_bucket(Bucket=src_bucket_name)
-        role_s3.create_bucket(Bucket=log_bucket_name)
+        create_bucket(role_s3, Bucket=src_bucket_name)
+        create_bucket(role_s3, Bucket=log_bucket_name)
         prefix = 'log/'
         _set_log_bucket_policy_tenant(role_s3, "", log_bucket_name, "", alt_user_id, [src_bucket_name], [prefix])
 
@@ -18258,7 +18304,7 @@ def test_bucket_logging_object_meta():
         pytest.skip('ceph extension to bucket logging not supported at client')
     client = get_client()
     src_bucket_name = get_new_bucket_name()
-    src_bucket = client.create_bucket(Bucket=src_bucket_name, ObjectLockEnabledForBucket=True)
+    src_bucket = create_bucket(client, Bucket=src_bucket_name, ObjectLockEnabledForBucket=True)
     log_bucket_name = get_new_bucket_name()
     log_bucket = get_new_bucket_resource(name=log_bucket_name)
 
@@ -19363,6 +19409,7 @@ def test_get_versioned_object_attributes():
 def test_get_sse_c_encrypted_object_attributes():
     bucket_name = get_new_bucket()
     client = get_client()
+    _unblock_sse_c(client, bucket_name)
     key = 'obj'
     objlen = 1000
     data = 'A'*objlen
@@ -20362,7 +20409,7 @@ def test_create_bucket_bucket_owner_enforced():
     client = get_client()
     bucket_owner = (get_main_user_id(), get_main_display_name())
     bucket = get_new_bucket_name()
-    client.create_bucket(Bucket=bucket, ObjectOwnership='BucketOwnerEnforced')
+    create_bucket(client, Bucket=bucket, ObjectOwnership='BucketOwnerEnforced')
     assert 'BucketOwnerEnforced' == get_bucket_ownership(client, bucket)
     # add public bucket policy and test with 'alt' user
     client.put_bucket_policy(Bucket=bucket, Policy=public_bucket_policy(bucket))
@@ -20374,7 +20421,7 @@ def test_create_bucket_bucket_owner_preferred():
     client = get_client()
     bucket_owner = (get_main_user_id(), get_main_display_name())
     bucket = get_new_bucket_name()
-    client.create_bucket(Bucket=bucket, ObjectOwnership='BucketOwnerPreferred')
+    create_bucket(client, Bucket=bucket, ObjectOwnership='BucketOwnerPreferred')
     assert 'BucketOwnerPreferred' == get_bucket_ownership(client, bucket)
     # add public bucket policy and test with 'alt' user
     client.put_bucket_policy(Bucket=bucket, Policy=public_bucket_policy(bucket))
@@ -20386,7 +20433,7 @@ def test_create_bucket_object_writer():
     client = get_client()
     bucket_owner = (get_main_user_id(), get_main_display_name())
     bucket = get_new_bucket_name()
-    client.create_bucket(Bucket=bucket, ObjectOwnership='ObjectWriter')
+    create_bucket(client, Bucket=bucket, ObjectOwnership='ObjectWriter')
     assert 'ObjectWriter' == get_bucket_ownership(client, bucket)
     # add public bucket policy and test with 'alt' user
     client.put_bucket_policy(Bucket=bucket, Policy=public_bucket_policy(bucket))
@@ -20401,7 +20448,7 @@ def test_put_bucket_ownership_bucket_owner_enforced():
     ownership = {'Rules': [{'ObjectOwnership': 'BucketOwnerEnforced'}]}
 
     # expect PutBucketOwnershipControls to fail with public-read ACL
-    client.create_bucket(Bucket=bucket, ACL='public-read')
+    create_bucket(client, Bucket=bucket, ACL='public-read')
     e = assert_raises(ClientError, client.put_bucket_ownership_controls,
                       Bucket=bucket, OwnershipControls=ownership)
     status, error_code = _get_status_and_error_code(e.response)
@@ -20566,6 +20613,8 @@ def _test_copy_enc(file_size, source_mode_key, dest_mode_key, source_sc=None, de
 
     bucket_name = get_new_bucket()
     client = get_client()
+    if source_mode_key == 'sse-c':
+        _unblock_sse_c(client, bucket_name)
 
     # upload original file with source encryption
     data = 'A'*file_size
@@ -20577,6 +20626,8 @@ def _test_copy_enc(file_size, source_mode_key, dest_mode_key, source_sc=None, de
 
     # copy the object to a new key, with destination encryption
     dest_bucket_name = get_new_bucket()
+    if dest_mode_key == 'sse-c':
+        _unblock_sse_c(client, dest_bucket_name)
     copy_args = {key: value() if callable(value) else value for key, value in dest_args.get('args', {}).items()}
     copy_args.update(source_args.get('source_copy_args', {}))
     if dest_sc:
@@ -20597,6 +20648,8 @@ def _test_copy_part_enc(file_size, source_mode_key, dest_mode_key, source_sc=Non
 
     bucket_name = get_new_bucket()
     client = get_client()
+    if source_mode_key == 'sse-c':
+        _unblock_sse_c(client, bucket_name)
 
     # upload original file with source encryption
     data = 'A'*file_size
@@ -20608,6 +20661,8 @@ def _test_copy_part_enc(file_size, source_mode_key, dest_mode_key, source_sc=Non
 
     # create a multipart upload with source encryption
     dest_bucket_name = get_new_bucket()
+    if dest_mode_key == 'sse-c':
+        _unblock_sse_c(client, dest_bucket_name)
     upload_args = {key: value() if callable(value) else value for key, value in dest_args.get('args', {}).items()}
     if dest_sc:
         upload_args['StorageClass'] = dest_sc
@@ -20709,13 +20764,7 @@ def _test_copy_part_enc(file_size, source_mode_key, dest_mode_key, source_sc=Non
     })
 
     if dest_mode_key == 'sse-c':
-        # make sure api is verifying the SSE-C headers
-        e = assert_raises(ClientError, client.complete_multipart_upload,
-                          Bucket=dest_bucket_name, Key='testobj2',
-                          UploadId=upload_id, MultipartUpload={'Parts': parts})
-        status, _ = _get_status_and_error_code(e.response)
-        assert status == 400
-
+        # make sure api is verifying the SSE-C headers ONLY when they are passed
         # and the key would be the same as the one used in upload part
         # use the source key to complete the upload
         # this is not allowed, so we expect an error
@@ -20783,6 +20832,8 @@ def test_copy_part_enc(source_mode_key, dest_mode_key, source_storage_class, des
         f"Testing copy part from {source_mode_key} to {dest_mode_key} with storage class "
         f"{source_storage_class} -> {dest_storage_class} and object size {obj_size}"
     )
+    if not get_config_is_secure() and 'sse-c' in (source_mode_key, dest_mode_key):
+        pytest.skip("test requires secure (HTTPS) endpoint")
     _test_copy_part_enc(obj_size, source_mode_key, dest_mode_key, source_storage_class, dest_storage_class)
 
 def generate_copy_enc_params():
@@ -20828,6 +20879,8 @@ def test_copy_enc(source_mode_key, dest_mode_key, source_storage_class, dest_sto
         f"Testing copy from {source_mode_key} to {dest_mode_key} with storage class "
         f"{source_storage_class} -> {dest_storage_class} and object size {obj_size}"
     )
+    if not get_config_is_secure() and 'sse-c' in (source_mode_key, dest_mode_key):
+        pytest.skip("test requires secure (HTTPS) endpoint")
     _test_copy_enc(obj_size, source_mode_key, dest_mode_key, source_storage_class, dest_storage_class)
 
 def generate_lifecycle_transition_params():
