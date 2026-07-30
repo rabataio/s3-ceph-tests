@@ -1,3 +1,6 @@
+import datetime
+from datetime import timezone
+
 import pytest
 import botocore.config
 from botocore.exceptions import ClientError
@@ -160,6 +163,18 @@ def _remove_header_create_bad_bucket(remove, client=None):
 
     return e
 
+def _add_date_from_amz(request, **kwargs):
+    """ Add a Date header derived from the (signed) X-Amz-Date. X-Amz-Date stays
+        the signed auth timestamp; Date is not used for auth when X-Amz-Date is present.
+    """
+    amz_date = request.headers.get('X-Amz-Date')
+    if amz_date is None:
+        return
+    if isinstance(amz_date, bytes):
+        amz_date = amz_date.decode()
+    dt = datetime.datetime.strptime(amz_date, '%Y%m%dT%H%M%SZ').replace(tzinfo=timezone.utc)
+    request.headers['Date'] = formatdate(dt.timestamp(), usegmt=True)
+
 #
 # common tests
 #
@@ -292,8 +307,9 @@ def test_object_create_bad_authorization_empty():
 @pytest.mark.fails_on_rgw
 def test_object_create_date_and_amz_date():
     date = formatdate(usegmt=True)
-    bucket_name, key_name = _add_header_create_object({'Date': date, 'X-Amz-Date': date})
+    bucket_name, key_name = _add_header_create_object({'X-Amz-Date': date})
     client = get_client()
+    client.meta.events.register('before-send.s3.PutObject', _add_date_from_amz)
     client.put_object(Bucket=bucket_name, Key=key_name, Body='bar')
 
 @pytest.mark.auth_common
@@ -301,7 +317,7 @@ def test_object_create_date_and_amz_date():
 @pytest.mark.fails_on_rgw
 def test_object_create_amz_date_and_no_date():
     date = formatdate(usegmt=True)
-    bucket_name, key_name = _add_header_create_object({'Date': '', 'X-Amz-Date': date})
+    bucket_name, key_name = _add_header_create_object({'X-Amz-Date': date})
     client = get_client()
     client.put_object(Bucket=bucket_name, Key=key_name, Body='bar')
 
