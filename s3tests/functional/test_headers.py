@@ -289,7 +289,7 @@ def test_object_create_bad_authorization_empty():
     assert status == 403
 
 
-def _keep_sign_date_header(mocker, header):
+def _set_sign_date_header(mocker, header):
     def _set_necessary_date_headers(self, request):
         timestamp = request.context['timestamp']
         del request.headers[header]
@@ -302,25 +302,23 @@ def _keep_sign_date_header(mocker, header):
 # TODO: remove 'fails_on_rgw' and once we have learned how to pass both the 'Date' and 'X-Amz-Date' header during signing and not 'X-Amz-Date' before
 @pytest.mark.fails_on_rgw
 def test_object_create_bad_date_and_amz_date(mocker):
-    _keep_sign_date_header(mocker, 'X-Amz-Date')
+    _set_sign_date_header(mocker, 'X-Amz-Date')
     client = get_client()
     # NOTE: AWS prefer X-Amz-Date header before date header and ignore Date header.
-    bucket_name, key_name = _add_header_create_object({'Date': 'bad_date'}, client)
-    client.put_object(Bucket=bucket_name, Key=key_name, Body='bar')
+    _add_header_create_object({'Date': 'bad_date'}, client)
 
 
 @pytest.mark.auth_common
 def test_object_create_good_date_and_amz_date(mocker):
-    _keep_sign_date_header(mocker, 'X-Amz-Date')
+    _set_sign_date_header(mocker, 'X-Amz-Date')
     client = get_client()
     # NOTE: AWS prefer X-Amz-Date header before date header and ignore Date header.
-    bucket_name, key_name = _add_header_create_object({'Date': formatdate(usegmt=True)}, client)
-    client.put_object(Bucket=bucket_name, Key=key_name, Body='bar')
+    _add_header_create_object({'Date': formatdate(usegmt=True)}, client)
 
 
 @pytest.mark.auth_common
 def test_object_create_date_and_no_amz_date(mocker):
-    _keep_sign_date_header(mocker, 'Date')
+    _set_sign_date_header(mocker, 'Date')
     client = get_client()
     # NOTE: Without x-amz-date the signature timestamp is taken from the Date header.
     bucket_name = get_new_bucket()
@@ -331,7 +329,7 @@ def test_object_create_date_and_no_amz_date(mocker):
 # TODO: remove 'fails_on_rgw' and once we have learned how to pass both the 'Date' and 'X-Amz-Date' header during signing and not 'X-Amz-Date' before
 @pytest.mark.fails_on_rgw
 def test_object_create_amz_date_and_no_date(mocker):
-    _keep_sign_date_header(mocker, 'X-Amz-Date')
+    _set_sign_date_header(mocker, 'X-Amz-Date')
     client = get_client()
     bucket_name = get_new_bucket()
     client.put_object(Bucket=bucket_name, Key='foo')
