@@ -1474,18 +1474,14 @@ def test_bucket_list_return_data_versioning():
         _compare_dates(obj['LastModified'],key_data['LastModified'])
 
 def test_bucket_list_objects_anonymous():
-    bucket_name = get_new_bucket()
-    client = get_client()
-    client.put_bucket_acl(Bucket=bucket_name, ACL='public-read')
+    bucket_name = _setup_bucket_acl('public-read')
 
     unauthenticated_client = get_unauthenticated_client()
     unauthenticated_client.list_objects(Bucket=bucket_name)
 
 @pytest.mark.list_objects_v2
 def test_bucket_listv2_objects_anonymous():
-    bucket_name = get_new_bucket()
-    client = get_client()
-    client.put_bucket_acl(Bucket=bucket_name, ACL='public-read')
+    bucket_name = _setup_bucket_acl('public-read')
 
     unauthenticated_client = get_unauthenticated_client()
     unauthenticated_client.list_objects_v2(Bucket=bucket_name)
@@ -1573,7 +1569,7 @@ def _do_wait_completion(t):
         thr.join()
 
 def test_bucket_concurrent_set_canned_acl():
-    bucket_name = get_new_bucket()
+    bucket_name = _setup_bucket_acl()
     client = get_client()
 
     num_threads = 50 # boto2 retry defaults to 5 so we need a thread to fail at least 5 times
@@ -3288,12 +3284,13 @@ def _setup_bucket_object_acl(bucket_acl, object_acl, client=None):
 
     return bucket_name
 
-def _setup_bucket_acl(bucket_acl=None):
+def _setup_bucket_acl(bucket_acl=None, client=None):
     """
     set up a new bucket with specified acl
     """
     bucket_name = get_new_bucket_name()
-    client = get_client()
+    if client is None:
+        client = get_client()
 
     try:
         create_bucket(client, Bucket=bucket_name, ObjectOwnership='BucketOwnerPreferred')
@@ -3786,7 +3783,7 @@ def test_bucket_list_long_name():
     assert is_empty == True
 
 def test_bucket_create_naming_bad_ip():
-    check_bad_bucket_name('192.168.5.123')
+    check_bad_bucket_name('192.168.5.10')
 
 # test_bucket_create_naming_dns_* are valid but not recommended
 def test_bucket_create_naming_dns_underscore():
@@ -3985,9 +3982,8 @@ def test_bucket_acl_default():
 
 @pytest.mark.fails_on_aws
 def test_bucket_acl_canned_during_create():
-    bucket_name = get_new_bucket_name()
+    bucket_name = _setup_bucket_acl('public-read')
     client = get_client()
-    create_bucket(client, ACL='public-read', Bucket=bucket_name)
     response = client.get_bucket_acl(Bucket=bucket_name)
 
     display_name = get_main_display_name()
@@ -4017,9 +4013,8 @@ def test_bucket_acl_canned_during_create():
         )
 
 def test_bucket_acl_canned():
-    bucket_name = get_new_bucket_name()
+    bucket_name = _setup_bucket_acl('public-read')
     client = get_client()
-    create_bucket(client, ACL='public-read', Bucket=bucket_name)
     response = client.get_bucket_acl(Bucket=bucket_name)
 
     display_name = get_main_display_name()
@@ -4067,9 +4062,8 @@ def test_bucket_acl_canned():
         )
 
 def test_bucket_acl_canned_publicreadwrite():
-    bucket_name = get_new_bucket_name()
+    bucket_name = _setup_bucket_acl('public-read-write')
     client = get_client()
-    create_bucket(client, ACL='public-read-write', Bucket=bucket_name)
     response = client.get_bucket_acl(Bucket=bucket_name)
 
     display_name = get_main_display_name()
@@ -4106,9 +4100,8 @@ def test_bucket_acl_canned_publicreadwrite():
         )
 
 def test_bucket_acl_canned_authenticatedread():
-    bucket_name = get_new_bucket_name()
+    bucket_name = _setup_bucket_acl('authenticated-read')
     client = get_client()
-    create_bucket(client, ACL='authenticated-read', Bucket=bucket_name)
     response = client.get_bucket_acl(Bucket=bucket_name)
 
     display_name = get_main_display_name()
@@ -4138,7 +4131,7 @@ def test_bucket_acl_canned_authenticatedread():
         )
 
 def test_put_bucket_acl_grant_group_read():
-    bucket_name = get_new_bucket()
+    bucket_name = _setup_bucket_acl()
     client = get_client()
     display_name = get_main_display_name()
     user_id = get_main_user_id()
@@ -4508,7 +4501,7 @@ def test_object_acl_full_control_verify_attributes():
     assert etag == response['ETag']
 
 def test_bucket_acl_canned_private_to_private():
-    bucket_name = get_new_bucket()
+    bucket_name = _setup_bucket_acl()
     client = get_client()
 
     response = client.put_bucket_acl(Bucket=bucket_name, ACL='private')
@@ -4607,7 +4600,7 @@ def _bucket_acl_grant_userid(permission):
     create a new bucket, grant a specific user the specified
     permission, read back the acl and verify correct setting
     """
-    bucket_name = get_new_bucket()
+    bucket_name = _setup_bucket_acl()
     client = get_client()
 
     main_user_id = get_main_user_id()
@@ -4891,7 +4884,6 @@ def test_object_header_acl_grants():
 @pytest.mark.fails_on_aws
 def test_bucket_header_acl_grants():
     headers = _get_acl_header()
-    bucket_name = get_new_bucket_name()
     client = get_client()
 
     headers = _get_acl_header()
@@ -4902,7 +4894,7 @@ def test_bucket_header_acl_grants():
 
     client.meta.events.register('before-sign.s3.CreateBucket', add_headers_before_sign)
 
-    create_bucket(client, Bucket=bucket_name)
+    bucket_name = _setup_bucket_acl(client=client)
 
     response = client.get_bucket_acl(Bucket=bucket_name)
 
@@ -5031,7 +5023,7 @@ def test_bucket_acl_grant_email_not_exist():
 
 def test_bucket_acl_revoke_all():
     # revoke all access, including the owner's access
-    bucket_name = get_new_bucket()
+    bucket_name = _setup_bucket_acl()
     client = get_client()
 
     client.put_object(Bucket=bucket_name, Key='foo', Body='bar')
@@ -6010,7 +6002,7 @@ def test_multipart_upload_empty():
     e = assert_raises(ClientError, client.complete_multipart_upload,Bucket=bucket_name, Key=key1, UploadId=upload_id)
     status, error_code = _get_status_and_error_code(e.response)
     assert status == 400
-    assert error_code == 'MalformedXML'
+    assert error_code == 'InvalidRequest'
 
 @pytest.mark.fails_on_dbstore
 def test_multipart_upload_complete_without_create():

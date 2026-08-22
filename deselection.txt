@@ -196,6 +196,8 @@ s3tests/functional/test_s3.py::test_block_public_policy_with_principal
 s3tests/functional/test_s3.py::test_block_public_restrict_public_buckets
 
 # NotImplemented - RestoreObject
+s3tests/functional/test_s3.py::test_list_object_versions_restore_status
+s3tests/functional/test_s3.py::test_list_objects_restore_status
 s3tests/functional/test_s3.py::test_read_through
 s3tests/functional/test_s3.py::test_restore_object_temporary
 s3tests/functional/test_s3.py::test_restore_object_permanent
@@ -313,6 +315,8 @@ s3tests/functional/test_s3.py::test_lifecycle_expiration_newer_noncurrent
 s3tests/functional/test_s3.py::test_lifecycle_deletemarker_expiration_with_days_tag
 s3tests/functional/test_s3.py::test_lifecycle_delete
 s3tests/functional/test_s3.py::test_delete_marker_expiration
+s3tests/functional/test_s3.py::test_lifecycle_cloud_transition_target_by_bucket_multiple_buckets
+s3tests/functional/test_s3.py::test_lifecycle_transition_encrypted[NOTSET]
 
 # NotImplemented - GetObjectTorrent
 s3tests/functional/test_s3.py::test_get_object_torrent
@@ -406,6 +410,31 @@ s3tests/functional/test_s3.py::test_put_bucket_logging_policy_wildcard
 s3tests/functional/test_s3.py::test_put_bucket_logging_policy_wildcard_objects
 s3tests/functional/test_s3.py::test_bucket_logging_permission_change_s
 s3tests/functional/test_s3.py::test_bucket_logging_simple_key
+s3tests/functional/test_s3.py::test_bucket_logging_permission_change_j
+s3tests/functional/test_s3.py::test_bucket_logging_put_and_flush
+s3tests/functional/test_s3.py::test_put_bucket_logging_account_j
+s3tests/functional/test_s3.py::test_bucket_logging_object_meta
+s3tests/functional/test_s3.py::test_bucket_logging_part_cleanup_concurrent_updating_s
+s3tests/functional/test_s3.py::test_bucket_logging_part_cleanup_concurrent_deletion_s
+s3tests/functional/test_s3.py::test_bucket_logging_part_cleanup_concurrent_updating_j
+s3tests/functional/test_s3.py::test_bucket_logging_part_cleanup_concurrent_disabling_j
+s3tests/functional/test_s3.py::test_bucket_logging_part_cleanup_concurrent_disabling_s
+s3tests/functional/test_s3.py::test_bucket_logging_part_cleanup_concurrent_deletion_j
+s3tests/functional/test_s3.py::test_bucket_logging_flush_empty
+s3tests/functional/test_s3.py::test_bucket_logging_part_cleanup_updating_s
+s3tests/functional/test_s3.py::test_bucket_logging_part_cleanup_disabling_s
+s3tests/functional/test_s3.py::test_bucket_logging_part_cleanup_deletion_s
+s3tests/functional/test_s3.py::test_bucket_logging_part_cleanup_updating_j
+s3tests/functional/test_s3.py::test_bucket_logging_part_cleanup_deletion_j
+s3tests/functional/test_s3.py::test_bucket_logging_part_cleanup_disabling_j
+s3tests/functional/test_s3.py::test_bucket_logging_conf_updating_roll_s
+s3tests/functional/test_s3.py::test_bucket_logging_conf_updating_roll_j
+s3tests/functional/test_s3.py::test_bucket_logging_conf_updating_pfx_s
+s3tests/functional/test_s3.py::test_bucket_logging_conf_updating_pfx_j
+s3tests/functional/test_s3.py::test_bucket_logging_conf_concurrent_updating_pfx_s
+s3tests/functional/test_s3.py::test_bucket_logging_conf_concurrent_updating_roll_j
+s3tests/functional/test_s3.py::test_bucket_logging_conf_concurrent_updating_pfx_j
+s3tests/functional/test_s3.py::test_bucket_logging_conf_concurrent_updating_roll_s
 
 # NotImplemented - S3 Control
 s3tests/functional/test_s3control.py::test_account_public_access_block
