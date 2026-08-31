@@ -232,8 +232,6 @@ s3tests/functional/test_s3.py::test_put_obj_enc_conflict_s3_kms
 s3tests/functional/test_s3.py::test_put_obj_enc_conflict_bad_enc_kms
 s3tests/functional/test_s3.py::test_encryption_sse_c_enforced_with_bucket_policy
 s3tests/functional/test_s3.py::test_encryption_sse_c_deny_algo_with_bucket_policy
-s3tests/functional/test_s3.py::test_multipart_sse_c_get_part
-s3tests/functional/test_s3.py::test_non_multipart_sse_c_get_part
 s3tests/functional/test_s3.py::test_bucket_policy_put_obj_s3_incorrect_algo_sse_s3
 
 # NotImplemented - Encryption SSE KMS
