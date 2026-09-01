@@ -14594,24 +14594,18 @@ def _unblock_sse_c(client, bucket_name):
     AWS blocks SSE-C by default; PutBucketEncryption with a BlockedEncryptionTypes
     EncryptionType of 'NONE' unblocks it, while 'SSE-C' blocks it (see the
     PutBucketEncryption API reference). The AWS tests need this so SSE-C writes are
-    accepted. RCS does not implement this API and answers NotImplemented, which is
-    ignored since SSE-C is not blocked there.
+    accepted. RCS implements this API, but SSE-C is allowed by default.
     """
-    try:
-        client.put_bucket_encryption(
-            Bucket=bucket_name,
-            ServerSideEncryptionConfiguration={
-                'Rules': [
-                    {
-                        'BlockedEncryptionTypes': {'EncryptionType': ['NONE']}
-                    }
-                ]
-            }
-        )
-    except ClientError as e:
-        _, error_code = _get_status_and_error_code(e.response)
-        if error_code != 'NotImplemented':
-            raise
+    client.put_bucket_encryption(
+        Bucket=bucket_name,
+        ServerSideEncryptionConfiguration={
+            'Rules': [
+                {
+                    'BlockedEncryptionTypes': {'EncryptionType': ['NONE']}
+                }
+            ]
+        }
+    )
 
 def _put_bucket_encryption_s3(client, bucket_name):
     """
