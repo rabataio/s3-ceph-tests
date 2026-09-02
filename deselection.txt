@@ -132,6 +132,9 @@ s3tests/functional/test_s3.py::test_bucket_policy_multipart
 s3tests/functional/test_s3.py::test_bucket_policy_deny_self_denied_policy
 s3tests/functional/test_s3.py::test_bucket_policy_deny_self_denied_policy_confirm_header
 s3tests/functional/test_s3.py::test_head_object_404_with_policy_prefix
+s3tests/functional/test_s3.py::test_encryption_sse_c_enforced_with_bucket_policy
+s3tests/functional/test_s3.py::test_encryption_sse_c_deny_algo_with_bucket_policy
+s3tests/functional/test_s3.py::test_bucket_policy_put_obj_s3_incorrect_algo_sse_s3
 
 # NotImplemented - Object lock
 s3tests/functional/test_s3.py::test_object_lock_put_obj_lock
@@ -245,11 +248,6 @@ s3tests/functional/test_s3.py::test_sse_kms_read_declare
 s3tests/functional/test_s3.py::test_put_obj_enc_conflict_c_kms
 s3tests/functional/test_s3.py::test_put_obj_enc_conflict_s3_kms
 s3tests/functional/test_s3.py::test_put_obj_enc_conflict_bad_enc_kms
-
-# NotImplemented - SSE-C enforcement via BucketPolicy
-s3tests/functional/test_s3.py::test_encryption_sse_c_enforced_with_bucket_policy
-s3tests/functional/test_s3.py::test_encryption_sse_c_deny_algo_with_bucket_policy
-s3tests/functional/test_s3.py::test_bucket_policy_put_obj_s3_incorrect_algo_sse_s3
 
 # NotImplemented - BucketTagging
 s3tests/functional/test_s3.py::test_set_bucket_tagging
