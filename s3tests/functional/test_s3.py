@@ -6679,6 +6679,9 @@ def test_multipart_get_part():
 @pytest.mark.encryption
 @pytest.mark.fails_on_dbstore
 def test_multipart_sse_c_get_part():
+    if not get_config_is_secure():
+        pytest.skip("test requires secure (HTTPS) endpoint")
+
     bucket_name = get_new_bucket()
     client = get_client()
     _unblock_sse_c(client, bucket_name)
@@ -6729,8 +6732,8 @@ def test_multipart_sse_c_get_part():
     # request PartNumber out of range
     e = assert_raises(ClientError, client.get_object, Bucket=bucket_name, Key=key, PartNumber=5)
     status, error_code = _get_status_and_error_code(e.response)
-    assert status == 400
-    assert error_code == 'InvalidPart'
+    assert status == 416
+    assert error_code == 'InvalidPartNumber'
 
 @pytest.mark.fails_on_dbstore
 def test_multipart_single_get_part():
@@ -6805,6 +6808,9 @@ def test_non_multipart_get_part():
 @pytest.mark.encryption
 @pytest.mark.fails_on_dbstore
 def test_non_multipart_sse_c_get_part():
+    if not get_config_is_secure():
+        pytest.skip("test requires secure (HTTPS) endpoint")
+
     bucket_name = get_new_bucket()
     client = get_client()
     _unblock_sse_c(client, bucket_name)
@@ -6822,8 +6828,8 @@ def test_non_multipart_sse_c_get_part():
     # request for PartNumber > 1 results in InvalidPart
     e = assert_raises(ClientError, client.get_object, Bucket=bucket_name, Key=key, PartNumber=2, **sse_args)
     status, error_code = _get_status_and_error_code(e.response)
-    assert status == 400
-    assert error_code == 'InvalidPart'
+    assert status == 416
+    assert error_code == 'InvalidPartNumber'
 
     # request for PartNumber = 1 gives back the entire object
     response = client.get_object(Bucket=bucket_name, Key=key, PartNumber=1, **sse_args)
@@ -14588,24 +14594,18 @@ def _unblock_sse_c(client, bucket_name):
     AWS blocks SSE-C by default; PutBucketEncryption with a BlockedEncryptionTypes
     EncryptionType of 'NONE' unblocks it, while 'SSE-C' blocks it (see the
     PutBucketEncryption API reference). The AWS tests need this so SSE-C writes are
-    accepted. RCS does not implement this API and answers NotImplemented, which is
-    ignored since SSE-C is not blocked there.
+    accepted. RCS implements this API, but SSE-C is allowed by default.
     """
-    try:
-        client.put_bucket_encryption(
-            Bucket=bucket_name,
-            ServerSideEncryptionConfiguration={
-                'Rules': [
-                    {
-                        'BlockedEncryptionTypes': {'EncryptionType': ['NONE']}
-                    }
-                ]
-            }
-        )
-    except ClientError as e:
-        _, error_code = _get_status_and_error_code(e.response)
-        if error_code != 'NotImplemented':
-            raise
+    client.put_bucket_encryption(
+        Bucket=bucket_name,
+        ServerSideEncryptionConfiguration={
+            'Rules': [
+                {
+                    'BlockedEncryptionTypes': {'EncryptionType': ['NONE']}
+                }
+            ]
+        }
+    )
 
 def _put_bucket_encryption_s3(client, bucket_name):
     """
